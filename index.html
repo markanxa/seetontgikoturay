@@ -1,1 +1,415 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Диагностика API / графиков</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    :root {
+        --bg: #0f0f0f;
+        --card: #1c1c1e;
+        --text: #ffffff;
+        --hint: #8e8e93;
+        --green: #34c759;
+        --red: #ff3b30;
+        --blue: #2ea6ff;
+        --border: rgba(128,128,128,0.15);
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+        padding: 16px 16px 40px;
+    }
+    h1 { font-size: 19px; margin: 4px 0 4px; }
+    .sub { color: var(--hint); font-size: 13px; margin-bottom: 18px; line-height: 1.4; }
+    .summary {
+        display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap;
+    }
+    .summary .chip {
+        background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+        padding: 6px 10px; font-size: 12px; color: var(--hint);
+    }
+    .run-all {
+        width: 100%; padding: 12px; border: none; border-radius: 10px;
+        background: var(--blue); color: #fff; font-size: 15px; font-weight: 700;
+        cursor: pointer; margin-bottom: 20px;
+    }
+    .run-all:active { opacity: 0.8; }
+    .test-card {
+        background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+        padding: 14px; margin-bottom: 14px;
+    }
+    .test-head {
+        display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px;
+    }
+    .test-title { font-size: 14.5px; font-weight: 600; }
+    .badge { font-size: 13px; flex-shrink: 0; }
+    .test-desc { font-size: 12px; color: var(--hint); margin-bottom: 8px; line-height: 1.4; }
+    .test-url { font-size: 10.5px; color: var(--hint); word-break: break-all; margin-bottom: 8px; font-family: monospace; }
+    .test-btn {
+        border: 1px solid var(--border); background: rgba(255,255,255,0.05); color: var(--text);
+        border-radius: 7px; padding: 6px 12px; font-size: 12.5px; cursor: pointer; margin-bottom: 8px;
+    }
+    .test-btn:active { opacity: 0.7; }
+    .meta-row { display: flex; gap: 10px; font-size: 11.5px; color: var(--hint); margin-bottom: 6px; }
+    .meta-row span.ok { color: var(--green); }
+    .meta-row span.fail { color: var(--red); }
+    pre.output {
+        background: rgba(0,0,0,0.35); border-radius: 8px; padding: 10px;
+        font-size: 10.5px; line-height: 1.4; max-height: 160px; overflow: auto;
+        white-space: pre-wrap; word-break: break-all; margin: 0;
+        color: #c9c9c9;
+    }
+    .chart-box { height: 160px; position: relative; margin-top: 8px; display: none; }
+    .activity-box { margin-top: 10px; display: none; }
+    .ur-bar { display: flex; width: 100%; height: 7px; border-radius: 4px; overflow: hidden; background: var(--border); }
+    .ur-bar .buy { background: var(--green); height: 100%; }
+    .ur-bar .sell { background: var(--red); height: 100%; }
+    .ur-labels { display: flex; justify-content: space-between; font-size: 11px; margin-top: 6px; }
+    .ur-labels .buy-l { color: var(--green); }
+    .ur-labels .sell-l { color: var(--red); }
+</style>
+</head>
+<body>
 
+<h1>Диагностика: API, графики, активность 24ч</h1>
+<div class="sub">
+    Отдельная страница для проверки, что именно не работает в основном приложении. Основной index.html пока не трогаем.
+    На скриншоте ошибка была "Failed to fetch" — это либо блокировка сети в окне предпросмотра файла в приложении Claude,
+    либо блок конкретного домена. Ниже — несколько независимых тестов, чтобы понять, что именно работает.
+</div>
+
+<div class="summary" id="summary"></div>
+
+<button class="run-all" id="runAll">Запустить все тесты</button>
+
+<!-- 0. Базовая проверка сети -->
+<div class="test-card" id="card-network">
+    <div class="test-head">
+        <span class="test-title">0. Базовая проверка сети (без криптобирж)</span>
+        <span class="badge" id="badge-network">⏳</span>
+    </div>
+    <div class="test-desc">Простой запрос к нейтральному публичному API. Если этот тест тоже падает — проблема не в CoinGecko, а в том, что среда предпросмотра вообще не даёт делать сетевые запросы (тогда всё заработает только после того, как вы откроете файл на реальном хостинге / в браузере, а не во встроенном просмотрщике).</div>
+    <div class="test-url">GET https://jsonplaceholder.typicode.com/todos/1</div>
+    <button class="test-btn" data-test="network">Запустить</button>
+    <div class="meta-row" id="meta-network"></div>
+    <pre class="output" id="output-network">—</pre>
+</div>
+
+<!-- 1. CoinGecko simple price -->
+<div class="test-card" id="card-cg-price">
+    <div class="test-head">
+        <span class="test-title">1. CoinGecko: цена TON/USDT в ₽</span>
+        <span class="badge" id="badge-cg-price">⏳</span>
+    </div>
+    <div class="test-desc">Тот же запрос, что использует основное приложение для живых цен.</div>
+    <div class="test-url">GET https://api.coingecko.com/api/v3/simple/price?ids=the-open-network,tether&vs_currencies=rub&include_24hr_change=true</div>
+    <button class="test-btn" data-test="cg-price">Запустить</button>
+    <div class="meta-row" id="meta-cg-price"></div>
+    <pre class="output" id="output-cg-price">—</pre>
+</div>
+
+<!-- 2. CoinGecko market_chart -> реальный график -->
+<div class="test-card" id="card-cg-chart">
+    <div class="test-head">
+        <span class="test-title">2. CoinGecko: реальная история цены (график за 24ч)</span>
+        <span class="badge" id="badge-cg-chart">⏳</span>
+    </div>
+    <div class="test-desc">Вместо случайно сгенерированных точек — реальные исторические цены TON за последние сутки, отрисованные через Chart.js. Так будет выглядеть настоящий график.</div>
+    <div class="test-url">GET https://api.coingecko.com/api/v3/coins/the-open-network/market_chart?vs_currency=rub&days=1</div>
+    <button class="test-btn" data-test="cg-chart">Запустить</button>
+    <div class="meta-row" id="meta-cg-chart"></div>
+    <div class="chart-box" id="chartbox-cg-chart"><canvas id="canvas-cg-chart"></canvas></div>
+    <pre class="output" id="output-cg-chart">—</pre>
+</div>
+
+<!-- 3. Binance 24hr ticker -->
+<div class="test-card" id="card-bn-ticker">
+    <div class="test-head">
+        <span class="test-title">3. Binance: сводка за 24ч (запасной источник цен)</span>
+        <span class="badge" id="badge-bn-ticker">⏳</span>
+    </div>
+    <div class="test-desc">Binance — запасной вариант, если CoinGecko упирается в лимит запросов. Здесь есть объём торгов, но нет разбивки на покупки/продажи.</div>
+    <div class="test-url">GET https://api.binance.com/api/v3/ticker/24hr?symbol=TONUSDT</div>
+    <button class="test-btn" data-test="bn-ticker">Запустить</button>
+    <div class="meta-row" id="meta-bn-ticker"></div>
+    <pre class="output" id="output-bn-ticker">—</pre>
+</div>
+
+<!-- 4. Binance klines -> реальная покупка/продажа за 24ч -->
+<div class="test-card" id="card-bn-klines">
+    <div class="test-head">
+        <span class="test-title">4. Binance: реальные "Покупка/Продажа" за 24ч</span>
+        <span class="badge" id="badge-bn-klines">⏳</span>
+    </div>
+    <div class="test-desc">CoinGecko не отдаёт разбивку объёма на покупки/продажи. У Binance это можно посчитать по 24 свечкам за час: berём "taker buy quote volume" против общего объёма. Так карточка "Торговая активность" станет настоящей, а не случайной.</div>
+    <div class="test-url">GET https://api.binance.com/api/v3/klines?symbol=TONUSDT&interval=1h&limit=24</div>
+    <button class="test-btn" data-test="bn-klines">Запустить</button>
+    <div class="meta-row" id="meta-bn-klines"></div>
+    <div class="activity-box" id="activitybox-bn-klines">
+        <div class="ur-bar"><div class="buy" id="bar-buy"></div><div class="sell" id="bar-sell"></div></div>
+        <div class="ur-labels">
+            <span class="buy-l" id="label-buy"></span>
+            <span class="sell-l" id="label-sell"></span>
+        </div>
+    </div>
+    <pre class="output" id="output-bn-klines">—</pre>
+</div>
+
+<!-- 5. STON.fi -->
+<div class="test-card" id="card-stonfi">
+    <div class="test-head">
+        <span class="test-title">5. STON.fi: цена жетонов TON (UTYA, REDO, tsTON…)</span>
+        <span class="badge" id="badge-stonfi">⏳</span>
+    </div>
+    <div class="test-desc">Самое важное для вас: STON.fi — крупнейшая DEX на TON, и на ней реально торгуются именно ваши мемные жетоны (UTYA, REDO и т.д.), которых нет на CoinGecko/Binance. Без ключа, без официального лимита.</div>
+    <div class="test-url">POST https://api.ston.fi/v1/assets/query  { search_terms: ["UTYA"] }</div>
+    <button class="test-btn" data-test="stonfi">Запустить</button>
+    <div class="meta-row" id="meta-stonfi"></div>
+    <pre class="output" id="output-stonfi">—</pre>
+</div>
+
+<!-- 6. OKX -->
+<div class="test-card" id="card-okx">
+    <div class="test-head">
+        <span class="test-title">6. OKX: цена TON</span>
+        <span class="badge" id="badge-okx">⏳</span>
+    </div>
+    <div class="test-desc">Ещё один запасной вариант с публичным API без ключа.</div>
+    <div class="test-url">GET https://www.okx.com/api/v5/market/ticker?instId=TON-USDT</div>
+    <button class="test-btn" data-test="okx">Запустить</button>
+    <div class="meta-row" id="meta-okx"></div>
+    <pre class="output" id="output-okx">—</pre>
+</div>
+
+<!-- 7. Bybit -->
+<div class="test-card" id="card-bybit">
+    <div class="test-head">
+        <span class="test-title">7. Bybit: цена TON</span>
+        <span class="badge" id="badge-bybit">⏳</span>
+    </div>
+    <div class="test-desc">Публичный API без ключа, высокие лимиты.</div>
+    <div class="test-url">GET https://api.bybit.com/v5/market/tickers?category=spot&symbol=TONUSDT</div>
+    <button class="test-btn" data-test="bybit">Запустить</button>
+    <div class="meta-row" id="meta-bybit"></div>
+    <pre class="output" id="output-bybit">—</pre>
+</div>
+
+<!-- 8. KuCoin -->
+<div class="test-card" id="card-kucoin">
+    <div class="test-head">
+        <span class="test-title">8. KuCoin: цена TON</span>
+        <span class="badge" id="badge-kucoin">⏳</span>
+    </div>
+    <div class="test-desc">Публичный API без ключа.</div>
+    <div class="test-url">GET https://api.kucoin.com/api/v1/market/stats?symbol=TON-USDT</div>
+    <button class="test-btn" data-test="kucoin">Запустить</button>
+    <div class="meta-row" id="meta-kucoin"></div>
+    <pre class="output" id="output-kucoin">—</pre>
+</div>
+
+<!-- 9. CoinCap -->
+<div class="test-card" id="card-coincap">
+    <div class="test-head">
+        <span class="test-title">9. CoinCap: цена TON в $</span>
+        <span class="badge" id="badge-coincap">⏳</span>
+    </div>
+    <div class="test-desc">Простой бесплатный агрегатор без ключа, отдаёт цену в долларах (для рублей пришлось бы отдельно брать курс USD→RUB).</div>
+    <div class="test-url">GET https://api.coincap.io/v2/assets/the-open-network</div>
+    <button class="test-btn" data-test="coincap">Запустить</button>
+    <div class="meta-row" id="meta-coincap"></div>
+    <pre class="output" id="output-coincap">—</pre>
+</div>
+
+<script>
+    const results = {}; // name -> true/false/null
+
+    function setBadge(name, state) {
+        const el = document.getElementById(`badge-${name}`);
+        el.textContent = state === 'ok' ? '✅' : state === 'fail' ? '❌' : '⏳';
+        results[name] = state;
+        renderSummary();
+    }
+
+    function setMeta(name, ms, extra = '') {
+        const el = document.getElementById(`meta-${name}`);
+        const ok = results[name] === 'ok';
+        el.innerHTML = `<span class="${ok ? 'ok' : 'fail'}">${ok ? 'OK' : 'ОШИБКА'}</span><span>${ms} мс</span>${extra ? `<span>${extra}</span>` : ''}`;
+    }
+
+    function setOutput(name, text) {
+        document.getElementById(`output-${name}`).textContent = text;
+    }
+
+    function renderSummary() {
+        const box = document.getElementById('summary');
+        const names = Object.keys(results);
+        const okCount = names.filter(n => results[n] === 'ok').length;
+        const failCount = names.filter(n => results[n] === 'fail').length;
+        box.innerHTML = `
+            <div class="chip">✅ успешно: ${okCount}</div>
+            <div class="chip">❌ ошибок: ${failCount}</div>
+            <div class="chip">Всего тестов: 10</div>
+        `;
+    }
+
+    async function timedFetch(url, opts) {
+        const start = performance.now();
+        const res = await fetch(url, opts);
+        const ms = Math.round(performance.now() - start);
+        if (!res.ok) throw Object.assign(new Error(`HTTP ${res.status}`), { ms });
+        const data = await res.json();
+        return { data, ms };
+    }
+
+    // 0. Сеть
+    async function testNetwork() {
+        setBadge('network', 'pending');
+        try {
+            const { data, ms } = await timedFetch('https://jsonplaceholder.typicode.com/todos/1');
+            setBadge('network', 'ok');
+            setMeta('network', ms);
+            setOutput('network', JSON.stringify(data, null, 2));
+        } catch (e) {
+            setBadge('network', 'fail');
+            setMeta('network', e.ms || 0);
+            setOutput('network', 'Ошибка: ' + e.message + '\n\nЕсли этот тест тоже красный — сеть в этом окне предпросмотра недоступна вообще, дело не в CoinGecko.');
+        }
+    }
+
+    // 1. CoinGecko price
+    async function testCgPrice() {
+        setBadge('cg-price', 'pending');
+        const url = 'https://api.coingecko.com/api/v3/simple/price?ids=the-open-network,tether&vs_currencies=rub&include_24hr_change=true';
+        try {
+            const { data, ms } = await timedFetch(url);
+            setBadge('cg-price', 'ok');
+            setMeta('cg-price', ms);
+            setOutput('cg-price', JSON.stringify(data, null, 2));
+        } catch (e) {
+            setBadge('cg-price', 'fail');
+            setMeta('cg-price', e.ms || 0);
+            setOutput('cg-price', 'Ошибка: ' + e.message);
+        }
+    }
+
+    // 2. CoinGecko market_chart -> график
+    async function testCgChart() {
+        setBadge('cg-chart', 'pending');
+        const url = 'https://api.coingecko.com/api/v3/coins/the-open-network/market_chart?vs_currency=rub&days=1';
+        try {
+            const { data, ms } = await timedFetch(url);
+            setBadge('cg-chart', 'ok');
+            setMeta('cg-chart', ms, `точек: ${data.prices ? data.prices.length : 0}`);
+            setOutput('cg-chart', JSON.stringify(data.prices ? data.prices.slice(0, 5) : data, null, 2) + '\n... (показаны первые 5 точек)');
+
+            const box = document.getElementById('chartbox-cg-chart');
+            box.style.display = 'block';
+            const ctx = document.getElementById('canvas-cg-chart').getContext('2d');
+            const points = data.prices.map(p => p[1]);
+            const labels = data.prices.map(p => new Date(p[0]).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }));
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        data: points, borderColor: '#2ea6ff', borderWidth: 2,
+                        pointRadius: 0, tension: 0.3, fill: false
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { display: true, grid: { display: false }, ticks: { color: '#8e8e93', font: { size: 9 }, maxTicksLimit: 5 } },
+                        y: { display: false }
+                    }
+                }
+            });
+        } catch (e) {
+            setBadge('cg-chart', 'fail');
+            setMeta('cg-chart', e.ms || 0);
+            setOutput('cg-chart', 'Ошибка: ' + e.message);
+        }
+    }
+
+    // 3. Binance ticker
+    async function testBnTicker() {
+        setBadge('bn-ticker', 'pending');
+        const url = 'https://api.binance.com/api/v3/ticker/24hr?symbol=TONUSDT';
+        try {
+            const { data, ms } = await timedFetch(url);
+            setBadge('bn-ticker', 'ok');
+            setMeta('bn-ticker', ms);
+            setOutput('bn-ticker', JSON.stringify(data, null, 2));
+        } catch (e) {
+            setBadge('bn-ticker', 'fail');
+            setMeta('bn-ticker', e.ms || 0);
+            setOutput('bn-ticker', 'Ошибка: ' + e.message);
+        }
+    }
+
+    // 4. Binance klines -> реальная покупка/продажа
+    async function testBnKlines() {
+        setBadge('bn-klines', 'pending');
+        const url = 'https://api.binance.com/api/v3/klines?symbol=TONUSDT&interval=1h&limit=24';
+        try {
+            const { data, ms } = await timedFetch(url);
+            let totalQuote = 0, takerBuyQuote = 0;
+            data.forEach(k => {
+                totalQuote += parseFloat(k[7]);
+                takerBuyQuote += parseFloat(k[10]);
+            });
+            const takerSellQuote = totalQuote - takerBuyQuote;
+            const buyShare = totalQuote > 0 ? Math.round((takerBuyQuote / totalQuote) * 100) : 50;
+            const sellShare = 100 - buyShare;
+
+            setBadge('bn-klines', 'ok');
+            setMeta('bn-klines', ms, `свечей: ${data.length}`);
+            setOutput('bn-klines', JSON.stringify({
+                total_quote_volume_usdt: totalQuote.toFixed(0),
+                taker_buy_quote_volume_usdt: takerBuyQuote.toFixed(0),
+                taker_sell_quote_volume_usdt: takerSellQuote.toFixed(0),
+                buy_share_percent: buyShare,
+                sell_share_percent: sellShare
+            }, null, 2));
+
+            document.getElementById('activitybox-bn-klines').style.display = 'block';
+            document.getElementById('bar-buy').style.width = buyShare + '%';
+            document.getElementById('bar-sell').style.width = sellShare + '%';
+            document.getElementById('label-buy').textContent = `Покупка · ${(takerBuyQuote / 1000).toFixed(1)} тыс. $`;
+            document.getElementById('label-sell').textContent = `${(takerSellQuote / 1000).toFixed(1)} тыс. $ · Продажа`;
+        } catch (e) {
+            setBadge('bn-klines', 'fail');
+            setMeta('bn-klines', e.ms || 0);
+            setOutput('bn-klines', 'Ошибка: ' + e.message);
+        }
+    }
+
+    const runners = {
+        'network': testNetwork,
+        'cg-price': testCgPrice,
+        'cg-chart': testCgChart,
+        'bn-ticker': testBnTicker,
+        'bn-klines': testBnKlines
+    };
+
+    document.querySelectorAll('.test-btn').forEach(btn => {
+        btn.addEventListener('click', () => runners[btn.dataset.test]());
+    });
+
+    document.getElementById('runAll').addEventListener('click', async () => {
+        for (const name of Object.keys(runners)) {
+            await runners[name]();
+        }
+    });
+
+    renderSummary();
+</script>
+</body>
+  </html>
+                                    
