@@ -257,13 +257,25 @@
         `;
     }
 
-    async function timedFetch(url, opts) {
+    // Новая функция с жестким таймаутом через Promise.race
+    async function timedFetch(url, opts = {}, timeoutMs = 8000) {
         const start = performance.now();
-        const res = await fetch(url, opts);
-        const ms = Math.round(performance.now() - start);
-        if (!res.ok) throw Object.assign(new Error(`HTTP ${res.status}`), { ms });
-        const data = await res.json();
-        return { data, ms };
+        
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error(`Таймаут ${timeoutMs / 1000} сек (блокировка CORS или сети)`)), timeoutMs)
+        );
+
+        const fetchPromise = fetch(url, opts).then(async res => {
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return res.json();
+        });
+
+        try {
+            const data = await Promise.race([fetchPromise, timeoutPromise]);
+            return { data, ms: Math.round(performance.now() - start) };
+        } catch (e) {
+            throw Object.assign(e, { ms: Math.round(performance.now() - start) });
+        }
     }
 
     // 0. Сеть
@@ -277,7 +289,7 @@
         } catch (e) {
             setBadge('network', 'fail');
             setMeta('network', e.ms || 0);
-            setOutput('network', 'Ошибка: ' + e.message + '\n\nЕсли этот тест тоже красный — сеть в этом окне предпросмотра недоступна вообще, дело не в CoinGecko.');
+            setOutput('network', 'Ошибка: ' + e.message);
         }
     }
 
@@ -390,12 +402,108 @@
         }
     }
 
+    // 5. STON.fi (POST запрос, прокси не используем, но добавляем таймаут)
+    async function testStonfi() {
+        setBadge('stonfi', 'pending');
+        const start = performance.now();
+        try {
+            const res = await fetch('https://api.ston.fi/v1/assets/query', {
+                method: 'POST',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({ search_terms: ['UTYA'], limit: 5 })
+            });
+            const ms = Math.round(performance.now() - start);
+            if (!res.ok) throw Object.assign(new Error(`HTTP ${res.status}`), { ms });
+            const data = await res.json();
+            setBadge('stonfi', 'ok');
+            setMeta('stonfi', ms, `найдено: ${(data.asset_list || []).length}`);
+            setOutput('stonfi', JSON.stringify(data, null, 2));
+        } catch (e) {
+            setBadge('stonfi', 'fail');
+            setMeta('stonfi', e.ms || 0);
+            setOutput('stonfi', 'Ошибка: ' + e.message + '\n\n(Для POST-запросов к STON.fi в браузере часто требуется реальный бэкенд или прокси, который поддерживает POST)');
+        }
+    }
+
+    // 6. OKX (через CORS-прокси)
+    async function testOkx() {
+        setBadge('okx', 'pending');
+        const targetUrl = 'https://www.okx.com/api/v5/market/ticker?instId=TON-USDT';
+        const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(targetUrl);
+        try {
+            const { data, ms } = await timedFetch(proxyUrl);
+            setBadge('okx', 'ok');
+            setMeta('okx', ms, '(через прокси)');
+            setOutput('okx', JSON.stringify(data, null, 2));
+        } catch (e) {
+            setBadge('okx', 'fail');
+            setMeta('okx', e.ms || 0);
+            setOutput('okx', 'Ошибка: ' + e.message);
+        }
+    }
+
+    // 7. Bybit (через CORS-прокси)
+    async function testBybit() {
+        setBadge('bybit', 'pending');
+        const targetUrl = 'https://api.bybit.com/v5/market/tickers?category=spot&symbol=TONUSDT';
+        const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(targetUrl);
+        try {
+            const { data, ms } = await timedFetch(proxyUrl);
+            setBadge('bybit', 'ok');
+            setMeta('bybit', ms, '(через прокси)');
+            setOutput('bybit', JSON.stringify(data, null, 2));
+        } catch (e) {
+            setBadge('bybit', 'fail');
+            setMeta('bybit', e.ms || 0);
+            setOutput('bybit', 'Ошибка: ' + e.message);
+        }
+    }
+
+    // 8. KuCoin (через CORS-прокси)
+    async function testKucoin() {
+        setBadge('kucoin', 'pending');
+        const targetUrl = 'https://api.kucoin.com/api/v1/market/stats?symbol=TON-USDT';
+        const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(targetUrl);
+        try {
+            const { data, ms } = await timedFetch(proxyUrl);
+            setBadge('kucoin', 'ok');
+            setMeta('kucoin', ms, '(через прокси)');
+            setOutput('kucoin', JSON.stringify(data, null, 2));
+        } catch (e) {
+            setBadge('kucoin', 'fail');
+            setMeta('kucoin', e.ms || 0);
+            setOutput('kucoin', 'Ошибка: ' + e.message);
+        }
+    }
+
+    // 9. CoinCap (через CORS-прокси)
+    async function testCoincap() {
+        setBadge('coincap', 'pending');
+        const targetUrl = 'https://api.coincap.io/v2/assets/the-open-network';
+        const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(targetUrl);
+        try {
+            const { data, ms } = await timedFetch(proxyUrl);
+            setBadge('coincap', 'ok');
+            setMeta('coincap', ms, '(через прокси)');
+            setOutput('coincap', JSON.stringify(data, null, 2));
+        } catch (e) {
+            setBadge('coincap', 'fail');
+            setMeta('coincap', e.ms || 0);
+            setOutput('coincap', 'Ошибка: ' + e.message);
+        }
+    }
+
     const runners = {
         'network': testNetwork,
         'cg-price': testCgPrice,
         'cg-chart': testCgChart,
         'bn-ticker': testBnTicker,
-        'bn-klines': testBnKlines
+        'bn-klines': testBnKlines,
+        'stonfi': testStonfi,
+        'okx': testOkx,
+        'bybit': testBybit,
+        'kucoin': testKucoin,
+        'coincap': testCoincap
     };
 
     document.querySelectorAll('.test-btn').forEach(btn => {
@@ -409,7 +517,7 @@
     });
 
     renderSummary();
-</script>
+    </script>  
 </body>
   </html>
                                     
