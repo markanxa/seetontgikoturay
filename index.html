@@ -177,6 +177,18 @@
     .modal .log-line:last-child { border-bottom: none; }
     .modal .log-line .tag { color: var(--hint-color); }
     .modal-close { width: 100%; margin-top: 12px; padding: 11px; border: none; border-radius: 10px; background: var(--button-color); color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; }
+
+    /* микро-сердечко в шапке */
+    .heart-mini { display: inline-flex; align-items: center; color: var(--hint-color); }
+    .heart-mini svg { display: block; }
+
+    /* разлёт монет */
+    .coin-scatter { position: fixed; inset: 0; pointer-events: none; z-index: 500; overflow: hidden; }
+    .coin-scatter::before { content: ''; position: absolute; left: 50%; top: 50%; width: 10px; height: 10px; border-radius: 50%; transform: translate(-50%,-50%); box-shadow: 0 0 120px 60px rgba(46,166,255,0.35); opacity: 0; animation: scatterGlow 1.6s ease-out forwards; }
+    @keyframes scatterGlow { 0% { opacity: 0; } 30% { opacity: 1; } 100% { opacity: 0; } }
+    .scatter-coin { position: absolute; width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: 0 6px 18px rgba(0,0,0,0.45); will-change: transform, opacity; }
+    .scatter-coin .sc-emoji { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 23px; line-height: 1; }
+    .scatter-coin img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 </style>
 <script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
 </head>
@@ -186,7 +198,7 @@
     <div class="header-left">
         <span class="icon-btn back-arrow" id="backBtn">←</span>
         <span>Кошелёк</span>
-        <span class="icon-btn" style="font-size:12px;">▾</span>
+        <span class="icon-btn heart-mini" id="heartBtn" title="Кошелёк"><svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></span>
     </div>
     <div class="header-right">
         <span class="icon-btn" id="refreshBtn" title="Обновить">⟳</span>
@@ -222,6 +234,7 @@
 
     <div class="card">
         <h3>1. Поле ur</h3>
+        <p><b>Введите количество токенов в поле ur(your monets)</b></p>
         <p>Введите количество токенов в поле <b>ur</b>. Приложение рассчитает текущую стоимость позиции, отметит точку входа на графике и покажет результат относительно момента покупки.</p>
         <p class="muted">На графике: серая точка — момент входа, тонкая пунктирная линия — уровень входа. Всё, что выше линии, окрашивается в зелёный, ниже — в красный. Точку входа можно задать долгим нажатием прямо на графике.</p>
     </div>
@@ -246,6 +259,7 @@
                 <p class="muted">Каждая запись отделяется символом <code>`</code>, поля внутри записи — символом <code>|</code>:</p>
                 <p class="muted"><code>количество|время|цена|номер</code></p>
                 <p class="muted">Например: <code>0,27|12133423092026|123,45|2</code> — 0,27 токена, куплено 12:13:34 23.09.2026 по цене 123,45 ₽, монета №2 в списке. Если покупки не было, время и цена равны <code>0</code>.</p>
+                <p class="muted">Номера: <b>1–29</b> — токены, <b>30–37</b> — акции, <b>38–39</b> — фонды. Всего 39 записей.</p>
             </div>
         </details>
     </div>
@@ -334,6 +348,7 @@
     </div>
 
     <button class="sheet-apply" id="applyBtn">Применить</button>
+    <button class="sheet-apply" id="clearCacheBtn" style="background:var(--card-bg-2);color:var(--text-color);border:1px solid var(--border-color);margin-top:8px;">Удалить кэш графика/объёма</button>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -478,7 +493,7 @@
                 return out;
             },
             async history(t, tf) {
-                const days = { '3H':1, '12H':1, '1D':1, '7D':7, '1M':30, '1Y':365, 'ALL':'max' }[tf] || 1;
+                const days = { '1H':1, '3H':1, '12H':1, '1D':1, '7D':7, '1M':30, '1Y':365, 'ALL':'max' }[tf] || 1;
                 const d = await proxyFetch(`https://api.coingecko.com/api/v3/coins/${t.cgId}/market_chart?vs_currency=rub&days=${days}`);
                 if (!d.prices) return null;
                 return d.prices.map(p => ({ t: p[0], v: p[1] }));
@@ -504,7 +519,7 @@
                 return out;
             },
             async history(t, tf) {
-                const interval = { '3H':5, '12H':15, '1D':60, '7D':60, '1M':1440, '1Y':1440, 'ALL':10080 }[tf] || 60;
+                const interval = { '1H':1, '3H':5, '12H':15, '1D':60, '7D':60, '1M':1440, '1Y':1440, 'ALL':10080 }[tf] || 60;
                 const d = await proxyFetch(`https://api.kraken.com/0/public/OHLC?pair=${t.kraken}&interval=${interval}`);
                 const key = Object.keys(d.result || {}).find(k => k !== 'last');
                 if (!key) return null;
@@ -538,7 +553,7 @@
                 return out;
             },
             async history(t, tf) {
-                const bar = { '3H':'1m', '12H':'5m', '1D':'1H', '7D':'4H', '1M':'1D', '1Y':'1D', 'ALL':'1W' }[tf] || '1H';
+                const bar = { '1H':'1m', '3H':'1m', '12H':'5m', '1D':'1H', '7D':'4H', '1M':'1D', '1Y':'1D', 'ALL':'1W' }[tf] || '1H';
                 const d = await proxyFetch(`https://www.okx.com/api/v5/market/candles?instId=${t.okx}&bar=${bar}&limit=100`);
                 if (!d.data) return null;
                 return d.data.map(r => ({ t: parseInt(r[0]), v: parseFloat(r[4]) })).reverse();
@@ -568,7 +583,7 @@
                 return out;
             },
             async history(t, tf) {
-                const type = { '3H':'1min', '12H':'5min', '1D':'1hour', '7D':'4hour', '1M':'1day', '1Y':'1day', 'ALL':'1week' }[tf] || '1hour';
+                const type = { '1H':'1min', '3H':'1min', '12H':'5min', '1D':'1hour', '7D':'4hour', '1M':'1day', '1Y':'1day', 'ALL':'1week' }[tf] || '1hour';
                 const d = await proxyFetch(`https://api.kucoin.com/api/v1/market/candles?type=${type}&symbol=${t.kucoin}`);
                 if (!d.data) return null;
                 return d.data.map(r => ({ t: parseInt(r[0]) * 1000, v: parseFloat(r[2]) })).reverse();
@@ -598,7 +613,7 @@
                 return out;
             },
             async history(t, tf) {
-                const gran = { '3H':60, '12H':300, '1D':3600, '7D':21600, '1M':86400, '1Y':86400, 'ALL':86400 }[tf] || 3600;
+                const gran = { '1H':60, '3H':60, '12H':300, '1D':3600, '7D':21600, '1M':86400, '1Y':86400, 'ALL':86400 }[tf] || 3600;
                 const d = await proxyFetch(`https://api.exchange.coinbase.com/products/${t.coinbase}/candles?granularity=${gran}`);
                 if (!Array.isArray(d)) return null;
                 return d.map(r => ({ t: r[0] * 1000, v: r[4] })).reverse();
@@ -680,6 +695,20 @@
         return v.toLocaleString('ru-RU', { minimumFractionDigits: d, maximumFractionDigits: d }) + ' ₽';
     }
     function formatPercent(v) { return (v > 0 ? '+' : '') + v.toFixed(2) + '%'; }
+    function formatRubSigned(v) {
+        if (v == null || isNaN(v)) return '—';
+        return (v >= 0 ? '+' : '−') + formatRub(Math.abs(v));
+    }
+    function formatUsd(rubVolume) {
+        const rate = state.usdRub;
+        if (rate && rate > 0) return '$' + formatNum(rubVolume / rate);
+        return formatNum(rubVolume) + ' ₽';
+    }
+    function starsRate() {
+        const rate = state.usdRub;
+        if (rate && rate > 0) return '≈ ' + (0.014 * rate).toFixed(2).replace('.', ',') + ' ₽ (0,014 $)';
+        return '≈ 0,014 $';
+    }
     function formatNum(v) {
         if (v == null || isNaN(v)) return '—';
         if (v >= 1e9) return (v / 1e9).toFixed(2) + 'B';
@@ -774,7 +803,7 @@
             return;
         }
 
-        const needsRate = Object.values(raw).some(r => r.currency === 'USD');
+        const needsRate = Object.values(raw).some(r => r.currency === 'USD' || r.volume);
         let rate = null;
         if (needsRate) { try { rate = await getUsdRub(true); } catch (e) { rate = null; logFail('курс', e.message); } }
 
@@ -810,6 +839,7 @@
        ГРАФИК: окно таймфрейма
        ============================================================ */
     const TF = {
+        '1H':  { ms: 1 * 3600 * 1000,        pts: 60 },
         '3H':  { ms: 3 * 3600 * 1000,        pts: 36 },
         '12H': { ms: 12 * 3600 * 1000,       pts: 48 },
         '1D':  { ms: 24 * 3600 * 1000,       pts: 24 },
@@ -850,7 +880,7 @@
     }
     function labelFor(ts, tf) {
         const d = new Date(ts);
-        if (tf === '3H' || tf === '12H' || tf === '1D') return d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+        if (tf === '1H' || tf === '3H' || tf === '12H' || tf === '1D') return d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
         if (tf === '7D' || tf === '1M') return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
         if (tf === '1Y') return d.toLocaleDateString('ru-RU', { month: 'short', year: '2-digit' });
         return d.toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
@@ -870,14 +900,14 @@
     function startRetry(tokenId, token, tf) {
         stopRetry(tokenId);
         const noteEl = document.querySelector(`#item-${tokenId} .chart-note`);
-        let left = 30;
+        let sec = 0;
         const render = () => {
-            if (noteEl) { noteEl.textContent = `обновление(${left}сек)`; noteEl.classList.add('show'); }
+            if (noteEl) { noteEl.textContent = `обновление(${sec}сек)`; noteEl.classList.add('show'); }
         };
         render();
         const timer = setInterval(() => {
-            left--;
-            if (left <= 0) {
+            sec++;
+            if (sec >= 30) {
                 clearInterval(timer);
                 delete chartRetry[tokenId];
                 drawChart(tokenId, token, tf);
@@ -950,9 +980,15 @@
         if (noteEl) noteEl.classList.remove('show');
 
         const key = tokenId + '|' + tf;
-        let points = null, fromCache = false;
+        let points = null, fromCache = false, usedFresh = false;
 
-        if (token.real) {
+        // свежий кэш — не дёргаем API (меньше «обновление»)
+        const cached = chartCache[key];
+        if (cached && cached.points && cached.points.length >= 2 && Date.now() - cached.t < 60000) {
+            points = cached.points; usedFresh = true;
+        }
+
+        if (!points && token.real) {
             const histOrder = [state.priceProvider, 'coingecko'].filter((v, i, a) => a.indexOf(v) === i);
             for (const pid of histOrder) {
                 try {
@@ -967,8 +1003,7 @@
         }
 
         if (points) {
-            chartCache[key] = { points, t: Date.now() };
-            saveChartCache();
+            if (!usedFresh) { chartCache[key] = { points, t: Date.now() }; saveChartCache(); }
             stopRetry(tokenId);
         } else {
             // лимит API — не заменяем на плавную линию, берём последний кэш
@@ -1103,6 +1138,7 @@
             let next;
             if (step === 0) next = '12H';
             else if (step === 1) next = '3H';
+            else if (step === 2) next = '1H';
             else { next = sel; chartTap[tokenId] = -1; }
             chartTap[tokenId] = (chartTap[tokenId] || 0) + 1;
             if (next === sel) chartTap[tokenId] = 0;
@@ -1123,7 +1159,7 @@
         const card = document.querySelector(`#item-${tokenId} .ur-card`);
         if (!card) return;
         const qty = getQty(tokenId);
-        const idx = tokens.findIndex(t => t.id === tokenId) + 1;
+        const idx = allAssets().findIndex(t => t.id === tokenId) + 1;
 
         card.innerHTML = `
             <div class="ur-top">
@@ -1134,7 +1170,7 @@
             <div class="ur-value">—</div>
             <div class="ur-caption">введите количество токенов</div>
             <div class="ur-sep"></div>
-            <div class="ur-volume-label">Объём 24ч${token.volume ? ' · ' + formatNum(token.volume) + ' ₽' : ''}</div>
+            <div class="ur-volume-label">Объём 24ч${token.volume ? ' · ' + formatUsd(token.volume) : ''}</div>
             <div class="ur-bar"><div class="buy" style="width:50%"></div><div class="sell" style="width:50%"></div></div>
             <div class="ur-bar-labels"><span class="buy-label">загрузка…</span></div>
         `;
@@ -1154,9 +1190,9 @@
         updateUrMath(tokenId, token);
 
         // реальные сделки (с кэшем на случай лимита)
-        const tr = await loadTrades(token);
         const bar = card.querySelector('.ur-bar');
         const labels = card.querySelector('.ur-bar-labels');
+        const tr = token.real ? await loadTrades(token) : null;
         if (tr && (tr.buy > 0 || tr.sell > 0)) {
             const total = tr.buy + tr.sell;
             const buyPct = Math.round(tr.buy / total * 100);
@@ -1201,6 +1237,7 @@
     /* ============================================================
        СПИСОК
        ============================================================ */
+    function allAssets() { return [...tokens, ...stocks, ...funds]; }
     function currentList() {
         if (state.filter === 'stocks') return stocks;
         if (state.filter === 'funds') return funds;
@@ -1245,9 +1282,8 @@
                 const loss = entry && entry.price ? token.price < entry.price : false;
                 liveDot = `<span class="live-dot${loss ? ' loss' : ''}"></span>`;
             }
-            const isToken = token.kind === undefined;
-            const expandable = isToken;
-            const idx = tokens.findIndex(t => t.id === token.id) + 1;
+            const expandable = true;
+            const idx = allAssets().findIndex(t => t.id === token.id) + 1;
 
             return `
                 <div class="token-item" id="item-${token.id}" data-id="${token.id}">
@@ -1271,6 +1307,7 @@
                     ${expandable ? `
                     <div class="chart-wrapper">
                         <div class="expand-row">
+                            ${token.real ? `
                             <div class="chart-col">
                                 <div class="chart-container">
                                     <canvas id="chart-${token.id}"></canvas>
@@ -1280,13 +1317,17 @@
                                 <div class="date-range"></div>
                                 <div class="chart-note"></div>
                                 <div class="timeframe-pills">
+                                    <button class="pill" data-tf="1H">1Ч</button>
                                     <button class="pill active" data-tf="1D">1Д</button>
                                     <button class="pill" data-tf="7D">7Д</button>
                                     <button class="pill" data-tf="1M">1М</button>
                                     <button class="pill" data-tf="1Y">1Г</button>
                                     <button class="pill" data-tf="ALL">Всё</button>
                                 </div>
-                            </div>
+                            </div>` : `
+                            <div class="chart-col">
+                                <div class="chart-container" style="display:flex;align-items:center;justify-content:center;color:var(--hint-color);font-size:11px;text-align:center;line-height:1.4;">график недоступен<br>нужен отдельный API</div>
+                            </div>`}
                             <div class="ur-card"></div>
                         </div>
                     </div>` : ''}
@@ -1303,7 +1344,7 @@
                 const item = header.closest('.token-item');
                 if (!item.querySelector('.chart-wrapper')) return;
                 const tokenId = item.dataset.id;
-                const token = tokens.find(t => t.id === tokenId);
+                const token = allAssets().find(t => t.id === tokenId);
                 const wasExpanded = item.classList.contains('expanded');
 
                 document.querySelectorAll('.token-item.expanded').forEach(el => {
@@ -1333,7 +1374,7 @@
                 e.stopPropagation();
                 const item = btn.closest('.token-item');
                 const tokenId = item.dataset.id;
-                const token = tokens.find(t => t.id === tokenId);
+                const token = allAssets().find(t => t.id === tokenId);
                 item.querySelectorAll('.pill').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 state.selectedTf[tokenId] = btn.dataset.tf;
@@ -1388,6 +1429,13 @@
             showToast('Источник: ' + priceProviders[newPrice].label + ' · курс: ' + rateProviders[newRate].label);
             await loadPrices(true);
         }
+    });
+    document.getElementById('clearCacheBtn').addEventListener('click', () => {
+        Object.keys(chartCache).forEach(k => delete chartCache[k]);
+        saveChartCache();
+        localStorage.removeItem('priceCache');
+        allAssets().forEach(t => localStorage.removeItem('trades_' + t.id));
+        showToast('Кэш графика и объёма удалён');
     });
 
     /* ============================================================
@@ -1453,7 +1501,7 @@
     }
     // формат: количество|время|цена|номер
     function buildDbString() {
-        return tokens.map((t, i) => {
+        return allAssets().map((t, i) => {
             const q = getQty(t.id);
             const e = getEntry(t.id);
             const qs = q ? String(q).replace('.', ',') : '0';
@@ -1489,13 +1537,14 @@
             else if (f.length === 3) { [q, ts, idx] = f; pr = '0'; }
             else { [q, idx] = f; ts = '0'; pr = '0'; }
             const i = parseInt(idx) - 1;
-            if (i >= 0 && i < tokens.length) {
+            const list = allAssets();
+            if (i >= 0 && i < list.length) {
                 const v = parseFloat(String(q).replace(',', '.'));
-                setQty(tokens[i].id, isNaN(v) ? 0 : v);
+                setQty(list[i].id, isNaN(v) ? 0 : v);
                 const time = stampToTs(ts);
                 const price = parseFloat(String(pr).replace(',', '.'));
-                if (time) setEntry(tokens[i].id, { time, price: isNaN(price) ? 0 : price });
-                else setEntry(tokens[i].id, null);
+                if (time) setEntry(list[i].id, { time, price: isNaN(price) ? 0 : price });
+                else setEntry(list[i].id, null);
                 n++;
             }
         });
@@ -1507,7 +1556,7 @@
        Портфель
        ============================================================ */
     function renderPortfolio() {
-        const holdings = tokens.filter(t => getQty(t.id) > 0);
+        const holdings = allAssets().filter(t => getQty(t.id) > 0);
         const sumEl = document.getElementById('portfolioSummary');
         const holdEl = document.getElementById('portfolioHoldings');
 
@@ -1518,14 +1567,15 @@
             const e = getEntry(t.id);
             cost += q * (e && e.price ? e.price : t.price);
         });
-        const pl = cost ? (total - cost) / cost * 100 : 0;
+        const plAbs = total - cost;
+        const pl = cost ? plAbs / cost * 100 : 0;
         const plCls = pl >= 0 ? 'positive' : 'negative';
 
         sumEl.innerHTML = `
             <h3>Итог портфеля</h3>
             <div class="kv"><span class="k">Стоимость</span><span class="v">${formatRub(total)}</span></div>
             <div class="kv"><span class="k">Вложено</span><span class="v">${formatRub(cost)}</span></div>
-            <div class="kv"><span class="k">Прибыль/убыток</span><span class="v ${plCls}">${formatPercent(pl)}</span></div>
+            <div class="kv"><span class="k">Прибыль/убыток</span><span class="v ${plCls}">${formatPercent(pl)} · ${formatRubSigned(plAbs)}</span></div>
             <div class="kv"><span class="k">Активов</span><span class="v">${holdings.length}</span></div>
         `;
 
@@ -1564,20 +1614,21 @@
             </div>
         `;
 
-        const withQty = tokens.filter(t => getQty(t.id) > 0).length;
-        const withEntry = tokens.filter(t => getEntry(t.id)).length;
+        const withQty = allAssets().filter(t => getQty(t.id) > 0).length;
+        const withEntry = allAssets().filter(t => getEntry(t.id)).length;
         document.getElementById('profileStats').innerHTML = `
             <h3>Статистика</h3>
             <div class="kv"><span class="k">Источник цен</span><span class="v">${priceProviders[state.priceProvider].label}</span></div>
             <div class="kv"><span class="k">Источник курса</span><span class="v">${rateProviders[state.rateProvider].label}</span></div>
-            <div class="kv"><span class="k">Токенов в списке</span><span class="v">${tokens.length}</span></div>
+            <div class="kv"><span class="k">Активов в списке</span><span class="v">${allAssets().length}</span></div>
             <div class="kv"><span class="k">С количеством (ur)</span><span class="v">${withQty}</span></div>
             <div class="kv"><span class="k">С точкой покупки</span><span class="v">${withEntry}</span></div>
-            <div class="kv"><span class="k">Версия</span><span class="v">2.1</span></div>
+            <div class="kv"><span class="k">Курс Stars</span><span class="v">${starsRate()}</span></div>
+            <div class="kv"><span class="k">Версия</span><span class="v">2.2</span></div>
         `;
     }
     document.getElementById('clearDataBtn').addEventListener('click', () => {
-        tokens.forEach(t => { localStorage.removeItem('qty_' + t.id); localStorage.removeItem('entry_' + t.id); });
+        allAssets().forEach(t => { localStorage.removeItem('qty_' + t.id); localStorage.removeItem('entry_' + t.id); });
         showToast('Данные сброшены');
         renderTokenList();
         renderProfile();
@@ -1648,6 +1699,50 @@
     document.getElementById('refreshBtn').addEventListener('click', () => {
         state.usdRub = null;
         loadPrices(true);
+    });
+
+    /* ============================================================
+       РАЗЛЁТ МОНЕТ (3 тапа по экрану)
+       ============================================================ */
+    let tapTimes = [];
+    function scatterCoins() {
+        const overlay = document.createElement('div');
+        overlay.className = 'coin-scatter';
+        document.body.appendChild(overlay);
+        const assets = allAssets();
+        const cx = window.innerWidth / 2;
+        const cy = window.innerHeight / 2;
+        const maxR = Math.max(window.innerWidth, window.innerHeight) * 0.55;
+        assets.forEach((t, i) => {
+            const el = document.createElement('div');
+            el.className = 'scatter-coin';
+            el.style.backgroundColor = t.iconBg || '#333';
+            const emoji = `<span class="sc-emoji">${t.icon || '•'}</span>`;
+            const img = t.iconFile ? `<img src="miniicons/${t.iconFile}" alt="" onerror="this.style.display='none'">` : '';
+            el.innerHTML = emoji + img;
+            el.style.left = cx + 'px';
+            el.style.top = cy + 'px';
+            overlay.appendChild(el);
+            const angle = (Math.PI * 2 * i) / assets.length + (Math.random() - 0.5) * 0.6;
+            const dist = 90 + Math.random() * maxR;
+            const dx = Math.cos(angle) * dist;
+            const dy = Math.sin(angle) * dist;
+            const rot = Math.random() * 720 - 360;
+            const dur = 1500 + Math.random() * 700;
+            el.animate([
+                { transform: 'translate(-50%,-50%) scale(0.15) rotate(0deg)', opacity: 0 },
+                { transform: `translate(calc(-50% + ${dx * 0.45}px), calc(-50% + ${dy * 0.45}px)) scale(1.15) rotate(${rot * 0.45}deg)`, opacity: 1, offset: 0.32 },
+                { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0.85) rotate(${rot}deg)`, opacity: 0 }
+            ], { duration: dur, easing: 'cubic-bezier(0.22,1,0.36,1)', delay: i * 18, fill: 'forwards' });
+        });
+        setTimeout(() => overlay.remove(), 2800);
+    }
+    document.addEventListener('click', (e) => {
+        if (e.target.closest('input, textarea, button, .pill, .ur-input, .opt, .sheet, .modal')) return;
+        const now = Date.now();
+        tapTimes = tapTimes.filter(t => now - t < 700);
+        tapTimes.push(now);
+        if (tapTimes.length >= 3) { tapTimes = []; scatterCoins(); }
     });
 
     /* ============================================================
