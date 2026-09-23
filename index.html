@@ -17,6 +17,7 @@
         --red: #ff3b30;
         --border-color: rgba(128, 128, 128, 0.15);
         --card-bg-2: rgba(255, 255, 255, 0.04);
+        --nav-h: 62px;
     }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     html, body { height: 100%; }
@@ -26,7 +27,6 @@
         color: var(--text-color);
         margin: 0; padding: 0;
         padding-top: env(safe-area-inset-top, 0px);
-        padding-bottom: calc(78px + env(safe-area-inset-bottom, 0px));
         min-height: 100%;
     }
     .header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; font-size: 19px; font-weight: 700; }
@@ -45,14 +45,16 @@
     .token-item { border-bottom: 1px solid var(--border-color); overflow: hidden; }
     .token-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; cursor: pointer; user-select: none; gap: 8px; }
     .token-info { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
-    .token-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; color: #fff; flex-shrink: 0; overflow: hidden; }
-    .token-icon img { width: 100%; height: 100%; object-fit: cover; }
+    .token-icon { position: relative; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; color: #fff; flex-shrink: 0; overflow: hidden; }
+    .token-icon .icon-emoji { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 18px; line-height: 1; }
+    .token-icon img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
     .token-names { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
     .token-name { font-weight: 500; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .token-meta { display: flex; align-items: center; gap: 6px; }
     .token-ticker { font-size: 13px; color: var(--hint-color); }
     .apr-badge { font-size: 11px; color: var(--hint-color); background: var(--card-bg-2); border: 1px solid var(--border-color); border-radius: 5px; padding: 1px 6px; white-space: nowrap; }
     .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); display: inline-block; margin-left: 2px; box-shadow: 0 0 6px var(--green); }
+    .live-dot.loss { background: var(--red); box-shadow: 0 0 6px var(--red); }
     .token-price-info { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
     .token-price { font-weight: 600; font-size: 15px; white-space: nowrap; }
     .token-change { font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 3px; }
@@ -61,23 +63,24 @@
     .chevron { width: 7px; height: 7px; border-right: 2px solid var(--hint-color); border-bottom: 2px solid var(--hint-color); transform: rotate(45deg); transition: transform 0.25s ease, border-color 0.25s ease; flex-shrink: 0; margin-left: 2px; }
     .token-item.expanded .chevron { transform: rotate(-135deg); border-color: var(--button-color); }
     .chart-wrapper { max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.4s ease, opacity 0.35s ease; }
-    .token-item.expanded .chart-wrapper { max-height: 520px; opacity: 1; padding-bottom: 16px; }
+    .token-item.expanded .chart-wrapper { max-height: 560px; opacity: 1; padding-bottom: 16px; }
     .expand-row { display: flex; gap: 10px; align-items: stretch; }
     .chart-col { flex: 1; min-width: 0; display: flex; flex-direction: column; }
     .chart-container { height: 150px; position: relative; }
     .chart-loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--hint-color); }
-    .date-range { display: flex; justify-content: space-between; font-size: 10px; color: var(--hint-color); padding: 4px 2px 10px; }
+    .id-badge { position: absolute; top: 2px; left: 2px; font-size: 9px; color: var(--hint-color); background: var(--card-bg-2); border: 1px solid var(--border-color); border-radius: 4px; padding: 0 4px; z-index: 2; }
+    .date-range { display: flex; justify-content: space-between; font-size: 10px; color: var(--hint-color); padding: 4px 2px 2px; }
+    .chart-note { font-size: 9.5px; color: #ffb020; padding: 0 2px 6px; display: none; }
+    .chart-note.show { display: block; }
     .timeframe-pills { display: flex; gap: 6px; margin-top: auto; }
     .pill { flex: 1; padding: 6px 0; border-radius: 6px; border: none; background-color: var(--card-bg); color: var(--hint-color); font-size: 11px; font-weight: 600; cursor: pointer; transition: background-color 0.2s, color 0.2s; }
     .pill.active { background-color: var(--button-color); color: #fff; }
-    .stale-note { font-size: 9.5px; color: #ffb020; padding: 2px 2px 0; display: none; }
-    .stale-note.show { display: block; }
 
     /* ur-card */
     .ur-card { width: 132px; flex-shrink: 0; background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 9px; display: flex; flex-direction: column; gap: 5px; }
     .ur-top { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
     .ur-badge { background-color: var(--button-color); color: #fff; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 5px; line-height: 1.4; }
-    .ur-input { width: 62px; background: var(--card-bg-2); border: 1px solid var(--border-color); border-radius: 5px; color: var(--text-color); font-size: 11px; padding: 3px 5px; outline: none; text-align: right; }
+    .ur-input { width: 64px; background: var(--card-bg-2); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-color); font-size: 12px; padding: 6px 6px; outline: none; text-align: right; line-height: 1.2; }
     .ur-input:focus { border-color: var(--button-color); }
     .ur-value { font-size: 19px; font-weight: 700; line-height: 1.1; }
     .ur-caption { font-size: 9px; color: var(--hint-color); line-height: 1.3; }
@@ -126,8 +129,9 @@
     @keyframes spin { to { transform: rotate(360deg); } }
 
     /* pages */
-    .page { display: none; padding: 4px 16px 20px; }
+    .page { display: none; padding: 4px 16px calc(var(--nav-h) + 28px + env(safe-area-inset-bottom, 0px)); }
     .page.active { display: block; }
+    #view-main { padding-bottom: calc(var(--nav-h) + 28px + env(safe-area-inset-bottom, 0px)); }
     .page-title { font-size: 20px; font-weight: 700; margin: 6px 0 4px; }
     .page-sub { font-size: 13px; color: var(--hint-color); margin-bottom: 16px; }
     .card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
@@ -149,11 +153,20 @@
     .kv .v { font-weight: 600; text-align: right; }
     .hold-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border-color); }
     .hold-row:last-child { border-bottom: none; }
-    .hold-icon { width: 30px; height: 30px; border-radius: 50%; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #fff; }
-    .hold-icon img { width: 100%; height: 100%; object-fit: cover; }
+    .hold-icon { position: relative; width: 30px; height: 30px; border-radius: 50%; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #fff; }
+    .hold-icon .icon-emoji { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+    .hold-icon img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
     .hold-name { flex: 1; min-width: 0; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .hold-val { font-size: 13.5px; font-weight: 600; white-space: nowrap; }
     .empty { text-align: center; color: var(--hint-color); font-size: 13.5px; padding: 20px 0; }
+
+    /* collapsible */
+    details.db-details { margin-top: 10px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--card-bg-2); overflow: hidden; }
+    details.db-details > summary { list-style: none; cursor: pointer; padding: 11px 12px; font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; user-select: none; }
+    details.db-details > summary::-webkit-details-marker { display: none; }
+    details.db-details > summary::after { content: '▾'; color: var(--hint-color); transition: transform 0.2s; }
+    details.db-details[open] > summary::after { transform: rotate(180deg); }
+    details.db-details .db-body { padding: 0 12px 12px; }
 
     /* modal */
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 400; padding: 20px; }
@@ -171,7 +184,7 @@
 
 <div class="header">
     <div class="header-left">
-        <span class="icon-btn back-arrow">←</span>
+        <span class="icon-btn back-arrow" id="backBtn">←</span>
         <span>Кошелёк</span>
         <span class="icon-btn" style="font-size:12px;">▾</span>
     </div>
@@ -209,25 +222,32 @@
 
     <div class="card">
         <h3>1. Поле ur</h3>
-        <p>В поле <b>ur</b> введите количество ваших токенов (ur — your (monets)). Приложение посчитает стоимость, отметит точку покупки на графике и покажет прибыль или убыток.</p>
-        <p class="muted">На графике: серая точка — момент покупки, тонкая полоска — уровень покупки. Всё, что выше полоски — зелёное, ниже — красное.</p>
+        <p>Введите количество токенов в поле <b>ur</b>. Приложение рассчитает текущую стоимость позиции, отметит точку входа на графике и покажет результат относительно момента покупки.</p>
+        <p class="muted">На графике: серая точка — момент входа, тонкая пунктирная линия — уровень входа. Всё, что выше линии, окрашивается в зелёный, ниже — в красный. Точку входа можно задать долгим нажатием прямо на графике.</p>
     </div>
 
     <div class="card">
         <h3>2. Источник данных (API)</h3>
-        <p>В меню (⋮) выберите источник (API). Учтите, что есть лимиты на обновление информации — около 10 запросов в минуту.</p>
-        <p class="muted">В случае если лимит превышен — на графике будет очень плавная линия (это обновление графика, а не актуальный курс).</p>
+        <p>В меню (⋮) выберите поставщика котировок и курса. У публичных API действует ограничение частоты запросов — порядка 10 в минуту.</p>
+        <p class="muted">При превышении лимита график сохраняет последние полученные данные и показывает таймер до следующего обновления. Это не искажение курса, а ожидание следующего запроса.</p>
     </div>
 
     <div class="card">
         <h3>3. Хранение данных</h3>
-        <p>Данные хранятся в виде строки текста — без сервера и базы данных. Формат: <code>0|1`0,27|2`12|3`…</code>, где <code>0,27</code> — количество токена, а <code>| 2</code> — индикатор крипты (| 1 — первый токен (TON), | 2 — второй, что ниже, и т.д.).</p>
+        <p>Данные хранятся в виде текстовой строки — без сервера и базы данных. Скопируйте строку перед выходом и сохраните её себе.</p>
         <textarea class="db-field" id="dbField" spellcheck="false"></textarea>
         <div class="btn-row">
             <button class="btn btn-primary" id="copyBtn">copy it</button>
             <button class="btn btn-ghost" id="applyDbBtn">применить</button>
         </div>
-        <p class="muted" style="margin-top:8px;">Скопируйте строку перед выходом из бота и сохраните себе в буфер обмена.</p>
+        <details class="db-details">
+            <summary>Формат строки</summary>
+            <div class="db-body">
+                <p class="muted">Каждая запись отделяется символом <code>`</code>, поля внутри записи — символом <code>|</code>:</p>
+                <p class="muted"><code>количество|время|цена|номер</code></p>
+                <p class="muted">Например: <code>0,27|12133423092026|123,45|2</code> — 0,27 токена, куплено 12:13:34 23.09.2026 по цене 123,45 ₽, монета №2 в списке. Если покупки не было, время и цена равны <code>0</code>.</p>
+            </div>
+        </details>
     </div>
 </div>
 
@@ -250,7 +270,24 @@
         <div class="btn-row">
             <button class="btn btn-ghost" id="clearDataBtn">Сбросить мои данные</button>
         </div>
-        <p class="muted" style="margin-top:8px;">Сбросит введённые количества токенов и точки покупки.</p>
+        <p class="muted" style="margin-top:8px;">Сбрасывает введённые количества токенов и точки покупки.</p>
+    </div>
+</div>
+
+<!-- ===== Разработчик ===== -->
+<div class="page" id="view-dev">
+    <div class="page-title">Разработчик</div>
+    <div class="page-sub">О проекте</div>
+    <div class="card">
+        <h3>Контакты</h3>
+        <div class="kv"><span class="k">Разработчик</span><span class="v">@ikoturay</span></div>
+        <div class="kv"><span class="k">GitHub</span><span class="v">markanxa</span></div>
+        <div class="kv"><span class="k">Проект</span><span class="v">Кошелёк · WebApp</span></div>
+    </div>
+    <div class="card">
+        <h3>О приложении</h3>
+        <p>Лёгкий крипто-кошелёк для Telegram: реальные котировки, графики, учёт позиций и портфель. Работает без сервера и базы данных — все данные хранятся локально у вас.</p>
+        <p class="muted">Спасибо, что пользуетесь. Идеи и баги — в личку @ikoturay.</p>
     </div>
 </div>
 
@@ -282,8 +319,8 @@
     <div class="sheet-sub">Выберите API-поставщиков курса и цен</div>
 
     <div class="sheet-note">
-        Учтите: у источников есть лимиты на обновление информации — около 10 запросов в минуту.
-        Если лимит превышен, на графике будет очень плавная линия (это обновление графика, а не актуальный курс).
+        У публичных источников есть лимит частоты запросов — около 10 в минуту.
+        При его превышении график сохраняет последние данные и показывает таймер до следующего обновления.
     </div>
 
     <div class="sheet-section">
@@ -342,7 +379,6 @@
         failLog.push({ t: Date.now(), tag, msg });
         if (failLog.length > 60) failLog.shift();
     }
-    // Проверка шрифтов
     (function checkFonts() {
         try {
             if (!document.fonts || !document.fonts.check) { logFail('шрифт', 'Font API недоступен'); return; }
@@ -433,7 +469,6 @@
                 const real = list.filter(t => t.real && t.cgId);
                 if (!real.length) return {};
                 const ids = real.map(t => t.cgId).join(',');
-                // /coins/markets — один запрос на все монеты, отдаёт цену, изменение и объём 24ч
                 const d = await proxyFetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=rub&ids=${ids}&price_change_percentage=24h`);
                 const out = {};
                 (d || []).forEach(r => {
@@ -443,12 +478,12 @@
                 return out;
             },
             async history(t, tf) {
-                const days = { '1D':1, '7D':7, '1M':30, '1Y':365, 'ALL':'max' }[tf] || 1;
+                const days = { '3H':1, '12H':1, '1D':1, '7D':7, '1M':30, '1Y':365, 'ALL':'max' }[tf] || 1;
                 const d = await proxyFetch(`https://api.coingecko.com/api/v3/coins/${t.cgId}/market_chart?vs_currency=rub&days=${days}`);
                 if (!d.prices) return null;
                 return d.prices.map(p => ({ t: p[0], v: p[1] }));
             },
-            async trades() { return null; } // у CoinGecko нет публичного потока сделок
+            async trades() { return null; }
         },
         kraken: {
             label:'Kraken', note:'USD → ₽ · графики · сделки',
@@ -469,7 +504,7 @@
                 return out;
             },
             async history(t, tf) {
-                const interval = { '1D':60, '7D':60, '1M':1440, '1Y':1440, 'ALL':10080 }[tf] || 60;
+                const interval = { '3H':5, '12H':15, '1D':60, '7D':60, '1M':1440, '1Y':1440, 'ALL':10080 }[tf] || 60;
                 const d = await proxyFetch(`https://api.kraken.com/0/public/OHLC?pair=${t.kraken}&interval=${interval}`);
                 const key = Object.keys(d.result || {}).find(k => k !== 'last');
                 if (!key) return null;
@@ -503,7 +538,7 @@
                 return out;
             },
             async history(t, tf) {
-                const bar = { '1D':'1H', '7D':'4H', '1M':'1D', '1Y':'1D', 'ALL':'1W' }[tf] || '1H';
+                const bar = { '3H':'1m', '12H':'5m', '1D':'1H', '7D':'4H', '1M':'1D', '1Y':'1D', 'ALL':'1W' }[tf] || '1H';
                 const d = await proxyFetch(`https://www.okx.com/api/v5/market/candles?instId=${t.okx}&bar=${bar}&limit=100`);
                 if (!d.data) return null;
                 return d.data.map(r => ({ t: parseInt(r[0]), v: parseFloat(r[4]) })).reverse();
@@ -533,7 +568,7 @@
                 return out;
             },
             async history(t, tf) {
-                const type = { '1D':'1hour', '7D':'4hour', '1M':'1day', '1Y':'1day', 'ALL':'1week' }[tf] || '1hour';
+                const type = { '3H':'1min', '12H':'5min', '1D':'1hour', '7D':'4hour', '1M':'1day', '1Y':'1day', 'ALL':'1week' }[tf] || '1hour';
                 const d = await proxyFetch(`https://api.kucoin.com/api/v1/market/candles?type=${type}&symbol=${t.kucoin}`);
                 if (!d.data) return null;
                 return d.data.map(r => ({ t: parseInt(r[0]) * 1000, v: parseFloat(r[2]) })).reverse();
@@ -563,7 +598,7 @@
                 return out;
             },
             async history(t, tf) {
-                const gran = { '1D':3600, '7D':21600, '1M':86400, '1Y':86400, 'ALL':86400 }[tf] || 3600;
+                const gran = { '3H':60, '12H':300, '1D':3600, '7D':21600, '1M':86400, '1Y':86400, 'ALL':86400 }[tf] || 3600;
                 const d = await proxyFetch(`https://api.exchange.coinbase.com/products/${t.coinbase}/candles?granularity=${gran}`);
                 if (!Array.isArray(d)) return null;
                 return d.map(r => ({ t: r[0] * 1000, v: r[4] })).reverse();
@@ -605,7 +640,9 @@
         usdRub: null,
         filter: 'all',
         query: '',
-        view: 'main'
+        view: 'main',
+        selectedTf: {},
+        currentTf: {}
     };
     if (!priceProviders[state.priceProvider]) state.priceProvider = 'coingecko';
     if (!rateProviders[state.rateProvider]) state.rateProvider = 'coingecko';
@@ -721,8 +758,18 @@
         }
 
         if (!Object.keys(raw).length) {
-            badge.textContent = 'ошибка';
-            showToast('Не удалось загрузить цены: ' + (lastErr ? lastErr.message : 'нет данных'));
+            // Ничего не получили — пробуем показать последний сохранённый кэш
+            try {
+                const c = JSON.parse(localStorage.getItem('priceCache') || 'null');
+                if (c && c.raw) {
+                    if (c.rate) state.usdRub = c.rate;
+                    applyPrices(c.raw, c.used, c.rate);
+                    showToast('Источник временно недоступен — показаны последние сохранённые данные');
+                    return;
+                }
+            } catch (e) {}
+            badge.textContent = 'нет связи';
+            showToast('Источник цен недоступен. Проверьте соединение и повторите позже.');
             renderTokenList();
             return;
         }
@@ -737,8 +784,14 @@
     }
 
     /* ============================================================
-       ЗАГРУЗКА СДЕЛОК (buy/sell) — реальные данные
+       ЗАГРУЗКА СДЕЛОК (buy/sell) — реальные данные + кэш
        ============================================================ */
+    function getTradesCache(id) {
+        try { return JSON.parse(localStorage.getItem('trades_' + id)); } catch (e) { return null; }
+    }
+    function setTradesCache(id, tr) {
+        try { localStorage.setItem('trades_' + id, JSON.stringify(tr)); } catch (e) {}
+    }
     async function loadTrades(token) {
         const order = [...new Set([state.priceProvider, 'kraken', 'okx', 'kucoin', 'coinbase'])];
         for (const pid of order) {
@@ -746,20 +799,23 @@
             if (!prov || !prov.trades) continue;
             try {
                 const r = await prov.trades(token);
-                if (r && (r.buy > 0 || r.sell > 0)) return r;
+                if (r && (r.buy > 0 || r.sell > 0)) { setTradesCache(token.id, r); return r; }
             } catch (e) { logFail('сделки', pid + ': ' + e.message); }
         }
-        return null;
+        // при лимите API — отдаём последние сохранённые данные
+        return getTradesCache(token.id);
     }
 
     /* ============================================================
        ГРАФИК: окно таймфрейма
        ============================================================ */
     const TF = {
-        '1D':  { ms: 24 * 3600 * 1000,        pts: 24 },
-        '7D':  { ms: 7 * 24 * 3600 * 1000,    pts: 84 },
-        '1M':  { ms: 30 * 24 * 3600 * 1000,   pts: 60 },
-        '1Y':  { ms: 365 * 24 * 3600 * 1000,  pts: 73 },
+        '3H':  { ms: 3 * 3600 * 1000,        pts: 36 },
+        '12H': { ms: 12 * 3600 * 1000,       pts: 48 },
+        '1D':  { ms: 24 * 3600 * 1000,       pts: 24 },
+        '7D':  { ms: 7 * 24 * 3600 * 1000,   pts: 84 },
+        '1M':  { ms: 30 * 24 * 3600 * 1000,  pts: 60 },
+        '1Y':  { ms: 365 * 24 * 3600 * 1000, pts: 73 },
         'ALL': { ms: 3 * 365 * 24 * 3600 * 1000, pts: 100 }
     };
     function downsample(points, max) {
@@ -779,7 +835,7 @@
         if (filtered.length < 2) filtered = points;
         return downsample(filtered, cfg.pts);
     }
-    // Очень плавная линия — используется при превышении лимита API
+    // Резервная плавная линия — только если совсем нет данных
     function smoothSeries(basePrice, tf) {
         const cfg = TF[tf] || TF['1D'];
         const n = cfg.pts;
@@ -794,15 +850,48 @@
     }
     function labelFor(ts, tf) {
         const d = new Date(ts);
-        if (tf === '1D') return d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+        if (tf === '3H' || tf === '12H' || tf === '1D') return d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
         if (tf === '7D' || tf === '1M') return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
         if (tf === '1Y') return d.toLocaleDateString('ru-RU', { month: 'short', year: '2-digit' });
         return d.toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
     }
 
     /* ============================================================
+       КЭШ ГРАФИКОВ + ТАЙМЕР ОБНОВЛЕНИЯ
+       ============================================================ */
+    const chartCache = {};
+    const chartRetry = {};
+    try { Object.assign(chartCache, JSON.parse(localStorage.getItem('chartCache') || '{}')); } catch (e) {}
+    function saveChartCache() { try { localStorage.setItem('chartCache', JSON.stringify(chartCache)); } catch (e) {} }
+
+    function stopRetry(tokenId) {
+        if (chartRetry[tokenId]) { clearInterval(chartRetry[tokenId].timer); delete chartRetry[tokenId]; }
+    }
+    function startRetry(tokenId, token, tf) {
+        stopRetry(tokenId);
+        const noteEl = document.querySelector(`#item-${tokenId} .chart-note`);
+        let left = 30;
+        const render = () => {
+            if (noteEl) { noteEl.textContent = `обновление(${left}сек)`; noteEl.classList.add('show'); }
+        };
+        render();
+        const timer = setInterval(() => {
+            left--;
+            if (left <= 0) {
+                clearInterval(timer);
+                delete chartRetry[tokenId];
+                drawChart(tokenId, token, tf);
+                return;
+            }
+            render();
+        }, 1000);
+        chartRetry[tokenId] = { timer, tf };
+    }
+
+    /* ============================================================
        ПЛАГИН: маркер точки покупки на графике
        ============================================================ */
+    const entryFlash = {}; // tokenId -> timestamp до которого точка «мигает»
     const entryMarkerPlugin = {
         id: 'entryMarker',
         afterDatasetsDraw(chart) {
@@ -812,7 +901,7 @@
             const y = scales.y.getPixelForValue(cfg.entry.price);
             if (y < chartArea.top - 2 || y > chartArea.bottom + 2) return;
             ctx.save();
-            // тонкая полоска уровня покупки
+            // тонкая пунктирная полоса уровня покупки
             ctx.strokeStyle = 'rgba(142,142,147,0.9)';
             ctx.lineWidth = 1;
             ctx.setLineDash([3, 3]);
@@ -824,9 +913,17 @@
             // серая точка в момент покупки
             if (cfg.entry.index != null && cfg.entry.index >= 0) {
                 const x = scales.x.getPixelForValue(cfg.entry.index);
+                const flashing = cfg.flashUntil && Date.now() < cfg.flashUntil;
+                const r = flashing ? 6.5 : 4.5;
+                if (flashing) {
+                    ctx.beginPath();
+                    ctx.arc(x, y, r + 4, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(142,142,147,0.25)';
+                    ctx.fill();
+                }
                 ctx.fillStyle = '#8e8e93';
                 ctx.beginPath();
-                ctx.arc(x, y, 4.5, 0, Math.PI * 2);
+                ctx.arc(x, y, r, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.strokeStyle = '#fff';
                 ctx.lineWidth = 1.5;
@@ -843,15 +940,18 @@
     async function drawChart(tokenId, token, tf) {
         const canvas = document.getElementById(`chart-${tokenId}`);
         if (!canvas) return;
+        state.currentTf[tokenId] = tf;
         const ctx = canvas.getContext('2d');
         if (charts[tokenId]) { charts[tokenId].destroy(); delete charts[tokenId]; }
 
         const loadingEl = document.querySelector(`#item-${tokenId} .chart-loading`);
-        const staleEl = document.querySelector(`#item-${tokenId} .stale-note`);
+        const noteEl = document.querySelector(`#item-${tokenId} .chart-note`);
         if (loadingEl) loadingEl.style.display = 'flex';
-        if (staleEl) staleEl.classList.remove('show');
+        if (noteEl) noteEl.classList.remove('show');
 
-        let points = null, stale = false;
+        const key = tokenId + '|' + tf;
+        let points = null, fromCache = false;
+
         if (token.real) {
             const histOrder = [state.priceProvider, 'coingecko'].filter((v, i, a) => a.indexOf(v) === i);
             for (const pid of histOrder) {
@@ -865,23 +965,38 @@
                 } catch (e) { logFail('график', pid + ': ' + e.message); }
             }
         }
-        if (!points || points.length < 2) { points = smoothSeries(token.price, tf); stale = true; }
+
+        if (points) {
+            chartCache[key] = { points, t: Date.now() };
+            saveChartCache();
+            stopRetry(tokenId);
+        } else {
+            // лимит API — не заменяем на плавную линию, берём последний кэш
+            const c = chartCache[key];
+            if (c && c.points && c.points.length >= 2) { points = c.points; fromCache = true; }
+            else { points = smoothSeries(token.price, tf); fromCache = true; }
+        }
 
         if (loadingEl) loadingEl.style.display = 'none';
-        if (stale && staleEl) staleEl.classList.add('show');
+
+        // точка покупки: если есть время, но нет цены — берём ближайшую точку графика
+        let entry = getEntry(tokenId);
+        if (entry && entry.time && !entry.price) {
+            let best = Infinity, bp = null;
+            points.forEach(p => { const d = Math.abs(p.t - entry.time); if (d < best) { best = d; bp = p; } });
+            if (bp) { entry.price = bp.v; setEntry(tokenId, entry); }
+        }
 
         const data = points.map(p => p.v);
         const labels = points.map(p => labelFor(p.t, tf));
         const isPositive = token.change >= 0;
         const baseColor = isPositive ? '#34c759' : '#ff3b30';
 
-        // точка покупки
-        const entry = getEntry(tokenId);
         let entryCfg = null;
         if (entry && entry.price) {
             let idx = 0, best = Infinity;
             points.forEach((p, i) => { const d = Math.abs(p.t - entry.time); if (d < best) { best = d; idx = i; } });
-            entryCfg = { price: entry.price, index: idx };
+            entryCfg = { price: entry.price, index: idx, flashUntil: entryFlash[tokenId] || 0 };
         }
 
         const gradient = ctx.createLinearGradient(0, 0, 0, 150);
@@ -901,6 +1016,7 @@
                     pointHoverRadius: 4,
                     fill: true,
                     tension: 0.4,
+                    // окраска относительно уровня покупки: выше — зелёный, ниже — красный
                     segment: entryCfg ? {
                         borderColor: (c) => (c.p1.parsed.y >= entryCfg.price ? '#34c759' : '#ff3b30')
                     } : {}
@@ -927,6 +1043,9 @@
         });
 
         updateDateRange(tokenId, points);
+        attachChartGestures(canvas, tokenId, token, tf);
+
+        if (fromCache) startRetry(tokenId, token, tf);
     }
 
     function updateDateRange(tokenId, points) {
@@ -940,17 +1059,76 @@
     }
 
     /* ============================================================
+       ЖЕСТЫ НА ГРАФИКЕ: тап — смена окна, долгое нажатие — точка входа
+       ============================================================ */
+    const chartTap = {};
+    function attachChartGestures(canvas, tokenId, token, tf) {
+        // навешиваем обработчики ровно один раз на canvas — иначе при каждой перерисовке они дублируются
+        if (canvas._gesturesAttached) return;
+        canvas._gesturesAttached = true;
+        let timer = null, longFired = false;
+        const getX = (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            return clientX - rect.left;
+        };
+        const curTf = () => state.currentTf[tokenId] || '1D';
+        const curToken = () => tokens.find(t => t.id === tokenId) || token;
+        const doLongPress = (e) => {
+            const chart = charts[tokenId];
+            if (!chart) return;
+            const x = getX(e);
+            const idx = Math.round(chart.scales.x.getValueForPixel(x));
+            const key = tokenId + '|' + curTf();
+            const pts = chartCache[key] ? chartCache[key].points : null;
+            if (!pts || !pts[idx]) return;
+            const p = pts[idx];
+            setEntry(tokenId, { price: p.v, time: p.t });
+            entryFlash[tokenId] = Date.now() + 3000;
+            drawChart(tokenId, curToken(), curTf());
+            updateUrMath(tokenId, curToken());
+            updateDbField();
+            showToast('Точка входа: ' + fmtTime(p.t) + ' · ' + formatRub(p.v));
+        };
+        const start = (e) => {
+            longFired = false;
+            timer = setTimeout(() => { longFired = true; doLongPress(e); }, 600);
+        };
+        const cancel = () => clearTimeout(timer);
+        const tap = () => {
+            if (longFired) return;
+            // цикл: 12ч → 3ч → назад к выбранному
+            const sel = state.selectedTf[tokenId] || '1D';
+            const step = chartTap[tokenId] || 0;
+            let next;
+            if (step === 0) next = '12H';
+            else if (step === 1) next = '3H';
+            else { next = sel; chartTap[tokenId] = -1; }
+            chartTap[tokenId] = (chartTap[tokenId] || 0) + 1;
+            if (next === sel) chartTap[tokenId] = 0;
+            drawChart(tokenId, curToken(), next);
+        };
+        canvas.addEventListener('touchstart', start, { passive: true });
+        canvas.addEventListener('touchend', () => { cancel(); tap(); });
+        canvas.addEventListener('touchmove', cancel);
+        canvas.addEventListener('mousedown', start);
+        canvas.addEventListener('mouseup', () => { cancel(); tap(); });
+        canvas.addEventListener('mouseleave', cancel);
+    }
+
+    /* ============================================================
        ur-КАРТОЧКА: количество + математика + объём 24ч
        ============================================================ */
     async function fillUrCard(tokenId, token) {
         const card = document.querySelector(`#item-${tokenId} .ur-card`);
         if (!card) return;
         const qty = getQty(tokenId);
-        const entry = getEntry(tokenId);
+        const idx = tokens.findIndex(t => t.id === tokenId) + 1;
 
         card.innerHTML = `
             <div class="ur-top">
                 <span class="ur-badge">ur</span>
+                <span class="ur-id" style="font-size:9px;color:var(--hint-color)">id${idx}</span>
                 <input class="ur-input" type="text" inputmode="decimal" placeholder="кол-во" value="${qty ? String(qty).replace('.', ',') : ''}">
             </div>
             <div class="ur-value">—</div>
@@ -975,7 +1153,7 @@
 
         updateUrMath(tokenId, token);
 
-        // реальные сделки
+        // реальные сделки (с кэшем на случай лимита)
         const tr = await loadTrades(token);
         const bar = card.querySelector('.ur-bar');
         const labels = card.querySelector('.ur-bar-labels');
@@ -986,7 +1164,7 @@
             labels.innerHTML = `<span class="buy-label">Покупка · ${formatNum(tr.buy)}</span><span class="sell-label">Продажа · ${formatNum(tr.sell)}</span>`;
         } else {
             bar.innerHTML = `<div class="buy" style="width:50%"></div><div class="sell" style="width:50%"></div>`;
-            labels.innerHTML = `<span class="buy-label" style="color:var(--hint-color)">нет данных по сделкам</span>`;
+            labels.innerHTML = `<span class="buy-label" style="color:var(--hint-color)">объём сделок недоступен</span>`;
         }
     }
 
@@ -1037,11 +1215,13 @@
         return list;
     }
 
-    function iconHtml(t) {
-        if (t.iconFile) {
-            return `<div class="token-icon" style="background-color:${t.iconBg}"><img src="icons/${t.iconFile}" alt="" onerror="this.parentNode.textContent='${t.icon}';logFail('иконка','${t.id}: файл не найден')"></div>`;
-        }
-        return `<div class="token-icon" style="background-color:${t.iconBg}">${t.icon}</div>`;
+    // эмодзи-подложка + картинка поверх (если картинка не загрузится — останется эмодзи)
+    function coinIcon(t, cls) {
+        const emoji = `<span class="icon-emoji">${t.icon || '•'}</span>`;
+        const img = t.iconFile
+            ? `<img src="icons/${t.iconFile}" alt="" onerror="this.style.display='none';logFail('иконка','${t.id}: файл не найден')">`
+            : '';
+        return `<div class="${cls}" style="background-color:${t.iconBg}">${emoji}${img}</div>`;
     }
 
     function renderTokenList() {
@@ -1057,15 +1237,23 @@
             const changeClass = token.change >= 0 ? 'positive' : 'negative';
             const changeSymbol = token.change >= 0 ? '↑' : '↓';
             const aprBadge = token.apr !== undefined ? `<span class="apr-badge">${token.apr.toFixed(2).replace('.', ',')}% годовых</span>` : '';
-            const liveDot = token.live ? '<span class="live-dot"></span>' : '';
+            // лампочка только у купленных монет; красная, если цена ниже точки входа
+            const qty = getQty(token.id);
+            const entry = getEntry(token.id);
+            let liveDot = '';
+            if (qty > 0) {
+                const loss = entry && entry.price ? token.price < entry.price : false;
+                liveDot = `<span class="live-dot${loss ? ' loss' : ''}"></span>`;
+            }
             const isToken = token.kind === undefined;
             const expandable = isToken;
+            const idx = tokens.findIndex(t => t.id === token.id) + 1;
 
             return `
                 <div class="token-item" id="item-${token.id}" data-id="${token.id}">
                     <div class="token-header">
                         <div class="token-info">
-                            ${iconHtml(token)}
+                            ${coinIcon(token, 'token-icon')}
                             <div class="token-names">
                                 <span class="token-name">${token.name}</span>
                                 <div class="token-meta">
@@ -1086,10 +1274,11 @@
                             <div class="chart-col">
                                 <div class="chart-container">
                                     <canvas id="chart-${token.id}"></canvas>
+                                    <div class="id-badge">id${idx}</div>
                                     <div class="chart-loading" style="display:none;">Загрузка…</div>
                                 </div>
                                 <div class="date-range"></div>
-                                <div class="stale-note">лимит API · плавная линия (обновление графика)</div>
+                                <div class="chart-note"></div>
                                 <div class="timeframe-pills">
                                     <button class="pill active" data-tf="1D">1Д</button>
                                     <button class="pill" data-tf="7D">7Д</button>
@@ -1122,17 +1311,20 @@
                         el.classList.remove('expanded');
                         const id = el.dataset.id;
                         if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+                        stopRetry(id);
                     }
                 });
 
                 if (wasExpanded) {
                     item.classList.remove('expanded');
                     if (charts[tokenId]) { charts[tokenId].destroy(); delete charts[tokenId]; }
+                    stopRetry(tokenId);
                     return;
                 }
                 item.classList.add('expanded');
+                chartTap[tokenId] = 0;
                 fillUrCard(tokenId, token);
-                setTimeout(() => drawChart(tokenId, token, '1D'), 150);
+                setTimeout(() => drawChart(tokenId, token, state.selectedTf[tokenId] || '1D'), 150);
             });
         });
 
@@ -1144,6 +1336,8 @@
                 const token = tokens.find(t => t.id === tokenId);
                 item.querySelectorAll('.pill').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
+                state.selectedTf[tokenId] = btn.dataset.tf;
+                chartTap[tokenId] = 0;
                 drawChart(tokenId, token, btn.dataset.tf);
             });
         });
@@ -1232,6 +1426,7 @@
         document.getElementById('view-readme').classList.toggle('active', view === 'readme');
         document.getElementById('view-portfolio').classList.toggle('active', view === 'portfolio');
         document.getElementById('view-profile').classList.toggle('active', view === 'profile');
+        document.getElementById('view-dev').classList.toggle('active', view === 'dev');
         // поиск и табы видны только на главной
         const showTop = view === 'main';
         document.querySelector('.search-bar').style.display = showTop ? 'flex' : 'none';
@@ -1244,10 +1439,27 @@
     /* ============================================================
        readme: строка-БД
        ============================================================ */
+    function pad2(n) { return String(n).padStart(2, '0'); }
+    function entryToStamp(ts) {
+        const d = new Date(ts);
+        return pad2(d.getHours()) + pad2(d.getMinutes()) + pad2(d.getSeconds()) + pad2(d.getDate()) + pad2(d.getMonth() + 1) + d.getFullYear();
+    }
+    function stampToTs(s) {
+        if (!s || s === '0' || s.length < 14) return null;
+        const hh = +s.slice(0, 2), mm = +s.slice(2, 4), ss = +s.slice(4, 6);
+        const dd = +s.slice(6, 8), mo = +s.slice(8, 10), yy = +s.slice(10, 14);
+        const dt = new Date(yy, mo - 1, dd, hh, mm, ss);
+        return isNaN(dt.getTime()) ? null : dt.getTime();
+    }
+    // формат: количество|время|цена|номер
     function buildDbString() {
         return tokens.map((t, i) => {
             const q = getQty(t.id);
-            return `${q ? String(q).replace('.', ',') : 0}|${i + 1}`;
+            const e = getEntry(t.id);
+            const qs = q ? String(q).replace('.', ',') : '0';
+            const ts = e && e.time ? entryToStamp(e.time) : '0';
+            const pr = e && e.price ? String(e.price).replace('.', ',') : '0';
+            return `${qs}|${ts}|${pr}|${i + 1}`;
         }).join('`');
     }
     function updateDbField() {
@@ -1271,11 +1483,19 @@
         if (!raw) return;
         let n = 0;
         raw.split('`').forEach(part => {
-            const [q, idx] = part.split('|');
+            const f = part.split('|');
+            let q, ts, pr, idx;
+            if (f.length >= 4) { [q, ts, pr, idx] = f; }
+            else if (f.length === 3) { [q, ts, idx] = f; pr = '0'; }
+            else { [q, idx] = f; ts = '0'; pr = '0'; }
             const i = parseInt(idx) - 1;
             if (i >= 0 && i < tokens.length) {
                 const v = parseFloat(String(q).replace(',', '.'));
                 setQty(tokens[i].id, isNaN(v) ? 0 : v);
+                const time = stampToTs(ts);
+                const price = parseFloat(String(pr).replace(',', '.'));
+                if (time) setEntry(tokens[i].id, { time, price: isNaN(price) ? 0 : price });
+                else setEntry(tokens[i].id, null);
                 n++;
             }
         });
@@ -1319,10 +1539,7 @@
             const e = getEntry(t.id);
             const p = e && e.price ? (t.price - e.price) / e.price * 100 : 0;
             const cls = p >= 0 ? 'positive' : 'negative';
-            const icon = t.iconFile
-                ? `<div class="hold-icon" style="background:${t.iconBg}"><img src="icons/${t.iconFile}" alt=""></div>`
-                : `<div class="hold-icon" style="background:${t.iconBg}">${t.icon}</div>`;
-            return `<div class="hold-row">${icon}<span class="hold-name">${t.name} · ${String(q).replace('.', ',')}</span><span class="hold-val">${formatRub(val)} <span class="${cls}">${formatPercent(p)}</span></span></div>`;
+            return `<div class="hold-row">${coinIcon(t, 'hold-icon')}<span class="hold-name">${t.name} · ${String(q).replace('.', ',')}</span><span class="hold-val">${formatRub(val)} <span class="${cls}">${formatPercent(p)}</span></span></div>`;
         }).join('');
     }
 
@@ -1353,11 +1570,10 @@
             <h3>Статистика</h3>
             <div class="kv"><span class="k">Источник цен</span><span class="v">${priceProviders[state.priceProvider].label}</span></div>
             <div class="kv"><span class="k">Источник курса</span><span class="v">${rateProviders[state.rateProvider].label}</span></div>
-            <div class="kv"><span class="k">Курс USD → ₽</span><span class="v">${state.usdRub ? state.usdRub.toFixed(2) + ' ₽' : '—'}</span></div>
             <div class="kv"><span class="k">Токенов в списке</span><span class="v">${tokens.length}</span></div>
             <div class="kv"><span class="k">С количеством (ur)</span><span class="v">${withQty}</span></div>
             <div class="kv"><span class="k">С точкой покупки</span><span class="v">${withEntry}</span></div>
-            <div class="kv"><span class="k">Версия</span><span class="v">2.0</span></div>
+            <div class="kv"><span class="k">Версия</span><span class="v">2.1</span></div>
         `;
     }
     document.getElementById('clearDataBtn').addEventListener('click', () => {
@@ -1372,7 +1588,7 @@
        ============================================================ */
     function addLongPress(el, ms, cb) {
         let timer = null, fired = false;
-        const start = (e) => {
+        const start = () => {
             fired = false;
             timer = setTimeout(() => { fired = true; cb(); }, ms);
         };
@@ -1390,7 +1606,7 @@
     document.querySelectorAll('.tab').forEach(tab => {
         addLongPress(tab, 2000, () => {
             const lines = blocked.length
-                ? blocked.map(t => `<span class="tag">${t.ticker}</span> — ${t.name}: не удалось получить цену (лимит API)`)
+                ? blocked.map(t => `<span class="tag">${t.ticker}</span> — ${t.name}: цена не получена (лимит API)`)
                 : ['Все монеты загружены — ограничений API не возникло'];
             openModal('Монеты, не добавленные из-за лимитов API', lines);
         });
@@ -1425,6 +1641,9 @@
     document.querySelectorAll('.nav-item').forEach(item => {
         item.addEventListener('click', () => switchView(item.dataset.view));
     });
+
+    // ← ведёт на страницу «Разработчик»
+    document.getElementById('backBtn').addEventListener('click', () => switchView('dev'));
 
     document.getElementById('refreshBtn').addEventListener('click', () => {
         state.usdRub = null;
