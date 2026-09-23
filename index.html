@@ -1,2 +1,1473 @@
-<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>Кошелёк</title><script src="https://telegram.org/js/telegram-web-app.js"></script><script src="https://cdn.jsdelivr.net/npm/chart.js"></script><style>:root{--bg:#0f0f0f;--text:#fff;--hint:#8e8e93;--btn:#2ea6ff;--card:#1c1c1e;--green:#34c759;--red:#ff3b30;--border:rgba(128,128,128,.15);--redbg:rgba(255,59,48,.1)}*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}body{font-family:-apple-system,sans-serif;background:var(--bg);color:var(--text);margin:0;padding:0 0 70px;min-height:100vh}.header{display:flex;align-items:center;justify-content:space-between;padding:16px;font-size:20px;font-weight:bold}.header-left{display:flex;align-items:center;gap:12px}.back-arrow{font-size:24px}.search-bar{margin:0 16px 16px;background:var(--card);border-radius:10px;padding:10px 16px;display:flex;align-items:center;gap:8px;color:var(--hint);font-size:15px}.tabs{display:flex;gap:20px;padding:0 16px;border-bottom:1px solid var(--border);margin-bottom:8px}.tab{padding:8px 0;font-size:15px;color:var(--hint);border-bottom:2px solid transparent}.tab.active{color:var(--text);border-bottom-color:var(--btn);font-weight:bold}.token-list{display:flex;flex-direction:column;padding:0 16px}.token-item{border-bottom:1px solid var(--border);overflow:hidden}.token-header{display:flex;justify-content:space-between;align-items:center;padding:14px 0;cursor:pointer}.token-info{display:flex;align-items:center;gap:12px;flex:1}.token-icon{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:14px;color:#fff}.token-names{display:flex;flex-direction:column;gap:2px}.token-name{font-weight:500;font-size:15px}.token-ticker{font-size:13px;color:var(--hint)}.token-price-info{display:flex;flex-direction:column;align-items:flex-end;gap:4px;margin-right:12px}.token-price{font-weight:600;font-size:15px}.token-change{font-size:13px;font-weight:500}.positive{color:var(--green)}.negative{color:var(--red)}.chevron{width:8px;height:8px;border-right:2px solid var(--hint);border-bottom:2px solid var(--hint);transform:rotate(45deg);transition:.3s;margin-right:4px}.token-item.expanded .chevron{transform:rotate(-135deg);border-color:var(--btn)}.chart-wrapper{max-height:0;opacity:0;overflow:hidden;transition:.5s}.token-item.expanded .chart-wrapper{max-height:400px;opacity:1;padding-bottom:16px}.timeframe-pills{display:flex;gap:6px;margin-bottom:12px}.pill{flex:1;padding:6px 0;border-radius:6px;border:none;background:var(--card);color:var(--hint);font-size:12px;font-weight:600;cursor:pointer}.pill.active{background:var(--btn);color:#fff}.chart-container{height:180px;position:relative;margin-bottom:16px}.trade-activity{background:var(--redbg);border:1px solid rgba(255,59,48,.3);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px}.activity-title{font-size:12px;color:var(--hint);text-transform:uppercase}.activity-row{display:flex;align-items:center;justify-content:space-between;gap:10px}.ur-input-group{display:flex;align-items:center;background:rgba(0,0,0,.3);border-radius:6px;padding:4px 8px;flex:1}.ur-label{color:var(--red);font-weight:bold;font-size:16px;margin-right:8px}.ur-input{background:transparent;border:none;color:var(--text);font-size:16px;font-weight:bold;width:100%;outline:none}.ur-value{font-size:16px;font-weight:bold;color:var(--red)}.bottom-nav{position:fixed;bottom:0;left:0;width:100%;background:var(--card);display:flex;justify-content:space-around;padding:12px 0 20px;border-top:1px solid var(--border)}.nav-item{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;color:var(--hint)}.nav-item.active{color:var(--btn)}.nav-icon{font-size:20px}</style></head><body><div class="header"><div class="header-left"><span class="back-arrow">←</span><span>Кошелёк</span></div><div>⋮</div></div><div class="search-bar"><span>🔍</span><span>Поиск по тикеру или названию</span></div><div class="tabs"><div class="tab">Все</div><div class="tab active">Токены</div><div class="tab">Акции</div><div class="tab">Фонды</div></div><div class="token-list" id="tokenList"></div><div class="bottom-nav"><div class="nav-item"><span class="nav-icon">🏦</span><span>Резерв</span></div><div class="nav-item active"><span class="nav-icon">%</span><span>Доход</span></div><div class="nav-item"><span class="nav-icon">💼</span><span>Резерв</span></div></div><script>
-const PROXY='https://bot-ashy-one.vercel.app/api/proxy?url=';async function fp(u){const r=await fetch(PROXY+encodeURIComponent(u));if(!r.ok)throw new Error('HTTP '+r.status);return await r.json()}const tg=window.Telegram.WebApp;tg.ready();tg.expand();const tokens=[{id:'gram',name:'Gram (бывш. Toncoin)',ticker:'GRAM',price:122.62,change:1.14,icon:'💎',iconBg:'#2ea6ff',isReal:true,cgId:'the-open-network'},{id:'usdt',name:'USDT',ticker:'USDT',price:83.99,change:-0.14,icon:'₮',iconBg:'#26a17b',isReal:true,cgId:'tether'},{id:'tonstakers',name:'Tonstakers TON',ticker:'tsTON',price:142.22,change:1.19,icon:'💧',iconBg:'#0098ea',isReal:false},{id:'utya',name:'Utya',ticker:'UTYA',price:2.59,change:6.09,icon:'🦆',iconBg:'#ffcc00',isReal:false},{id:'atf',name:'AI Trading Forex',ticker:'ATF',price:0.05,change:-3.32,icon:'🤖',iconBg:'#333',isReal:false},{id:'redo',name:'Resistance Dog',ticker:'REDO',price:5.00,change:5.01,icon:'🐕',iconBg:'#ff4500',isReal:false},{id:'cherry',name:'Hot Cherry',ticker:'CHERRY',price:0.01,change:-1.78,icon:'🍒',iconBg:'#ff69b4',isReal:false},{id:'dogs',name:'Dogs',ticker:'DOGS',price:0.01,change:1.15,icon:'🐶',iconBg:'#8b4513',isReal:false}];const tl=document.getElementById('tokenList');let cc=null;const fr=v=>v.toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2})+' ₽';async function lrp(){try{const d=await fp('https://api.coingecko.com/api/v3/simple/price?ids=the-open-network,tether&vs_currencies=rub&include_24hr_change=true');if(d['the-open-network']){tokens[0].price=d['the-open-network'].rub;tokens[0].change=d['the-open-network'].rub_24h_change||0}if(d['tether']){tokens[1].price=d['tether'].rub;tokens[1].change=d['tether'].rub_24h_change||0}}catch(e){console.error('Price error:',e)}rtl()}function gm(bp,tf){let n=120,v=.003;if(tf==='7D'){n=168;v=.008}else if(tf==='1M'){n=30;v=.015}else if(tf==='1Y'){n=52;v=.025}else if(tf==='ALL'){n=100;v=.04}let d=[],p=bp*(1-Math.random()*.05);for(let i=0;i<n;i++){let c=(Math.random()-.5)*v*p;let t=(bp-p)/(n-i);p+=c+t;if(p<.001)p=.001;d.push(p)}d[d.length-1]=bp;return d}async function dc(cid,t,tf){const c=document.getElementById(cid).getContext('2d');if(cc)cc.destroy();let data,labels=[];if(t.isReal&&t.cgId){try{const dm={'1D':1,'7D':7,'1M':30,'1Y':365,'ALL':'max'};const days=dm[tf]||1;const cd=await fp(`https://api.coingecko.com/api/v3/coins/${t.cgId}/market_chart?vs_currency=rub&days=${days}`);if(cd.prices&&cd.prices.length>0){const ps=cd.prices;const step=Math.max(1,Math.floor(ps.length/60));data=[];labels=[];for(let i=0;i<ps.length;i+=step){data.push(ps[i][1]);labels.push(new Date(ps[i][0]).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}))}data.push(ps[ps.length-1][1]);labels.push('Сейчас')}}catch(e){data=gm(t.price,tf);labels=['00:00','06:00','12:00','18:00','Сейчас']}}else{data=gm(t.price,tf);labels=['00:00','06:00','12:00','18:00','Сейчас']}const ip=t.change>=0,cl=ip?'#34c759':'#ff3b30';const g=c.createLinearGradient(0,0,0,180);g.addColorStop(0,ip?'rgba(52,199,89,.4)':'rgba(255,59,48,.4)');g.addColorStop(1,'rgba(0,0,0,0)');cc=new Chart(c,{type:'line',data:{labels,datasets:[{data,borderColor:cl,backgroundColor:g,borderWidth:2,pointRadius:0,fill:true,tension:.4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:x=>fr(x.parsed.y)}}},scales:{x:{display:true,ticks:{color:'#8e8e93',font:{size:10},maxTicksLimit:5}},y:{display:false,min:Math.min(...data)*.98,max:Math.max(...data)*1.02}}}})}function rtl(){tl.innerHTML='';tokens.forEach(t=>{const ck=t.change>=0?'positive':'negative',cs=t.change>=0?'↑':'↓';tl.insertAdjacentHTML('beforeend',`<div class="token-item" data-id="${t.id}"><div class="token-header"><div class="token-info"><div class="token-icon" style="background:${t.iconBg}">${t.icon}</div><div class="token-names"><span class="token-name">${t.name}</span><span class="token-ticker">${t.ticker}</span></div></div><div class="token-price-info"><span class="token-price">${fr(t.price)}</span><span class="token-change ${ck}">${cs} ${Math.abs(t.change).toFixed(2)}%</span></div><div class="chevron"></div></div><div class="chart-wrapper"><div class="timeframe-pills"><button class="pill active" data-tf="1D">1Д</button><button class="pill" data-tf="7D">7Д</button><button class="pill" data-tf="1M">1М</button><button class="pill" data-tf="1Y">1Г</button><button class="pill" data-tf="ALL">Всё</button></div><div class="chart-container"><canvas id="chart-${t.id}"></canvas></div><div class="trade-activity"><div class="activity-title">Торговая активность</div><div class="activity-row"><div class="ur-input-group"><span class="ur-label">ur</span><input type="number" class="ur-input" placeholder="0" min="0" step="any"></div><span class="ur-value">0.00 ₽</span></div></div></div></div>`)});document.querySelectorAll('.token-header').forEach(h=>h.addEventListener('click',()=>{const it=h.closest('.token-item'),id=it.dataset.id,t=tokens.find(x=>x.id===id);if(it.classList.contains('expanded')){it.classList.remove('expanded');if(cc)cc.destroy();cc=null;return}document.querySelectorAll('.token-item').forEach(e=>e.classList.remove('expanded'));if(cc)cc.destroy();cc=null;it.classList.add('expanded');setTimeout(()=>dc(`chart-${t.id}`,t,'1D'),150)}));document.querySelectorAll('.pill').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();const it=b.closest('.token-item'),t=tokens.find(x=>x.id===it.dataset.id);it.querySelectorAll('.pill').forEach(x=>x.classList.remove('active'));b.classList.add('active');dc(`chart-${t.id}`,t,b.dataset.tf)}));document.querySelectorAll('.ur-input').forEach(i=>i.addEventListener('input',e=>{const it=i.closest('.token-item'),t=tokens.find(x=>x.id===it.dataset.id),a=parseFloat(e.target.value)||0;it.querySelector('.ur-value').textContent=fr(a*t.price)}))}lrp();</script></body></html>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Кошёлёк</title>
+<!-- Telegram WebApp API -->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+    :root {
+        --bg-color: var(--tg-theme-bg-color, #0f0f0f);
+        --text-color: var(--tg-theme-text-color, #ffffff);
+        --hint-color: var(--tg-theme-hint-color, #8e8e93);
+        --button-color: var(--tg-theme-button-color, #2ea6ff);
+        --card-bg: var(--tg-theme-secondary-bg-color, #1c1c1e);
+        --green: #34c759;
+        --red: #ff3b30;
+        --border-color: rgba(128, 128, 128, 0.15);
+        --card-bg-2: rgba(255, 255, 255, 0.04);
+    }
+
+    * {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+        height: 100%;
+    }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        margin: 0;
+        padding: 0;
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: calc(78px + env(safe-area-inset-bottom, 0px));
+        min-height: 100%;
+    }
+
+    /* Шапка */
+    .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 16px;
+        font-size: 19px;
+        font-weight: 700;
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .icon-btn {
+        font-size: 20px;
+        cursor: pointer;
+        color: var(--text-color);
+        line-height: 1;
+    }
+
+    .header-right {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        color: var(--hint-color);
+    }
+
+    /* Поиск */
+    .search-bar {
+        margin: 0 16px 14px;
+        background-color: var(--card-bg);
+        border-radius: 10px;
+        padding: 10px 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--hint-color);
+        font-size: 14px;
+    }
+
+    .search-bar input {
+        background: transparent;
+        border: none;
+        outline: none;
+        color: var(--text-color);
+        font-size: 14px;
+        width: 100%;
+    }
+
+    .search-bar input::placeholder { color: var(--hint-color); }
+
+    /* Табы (верхние) */
+    .tabs {
+        display: flex;
+        gap: 22px;
+        padding: 0 16px;
+        border-bottom: 1px solid var(--border-color);
+        margin-bottom: 4px;
+        overflow-x: auto;
+    }
+
+    .tab {
+        padding: 8px 0;
+        font-size: 15px;
+        color: var(--hint-color);
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        white-space: nowrap;
+    }
+
+    .tab.active {
+        color: var(--text-color);
+        border-bottom-color: var(--button-color);
+        font-weight: 600;
+    }
+
+    .section-label {
+        padding: 14px 16px 6px;
+        font-size: 13px;
+        color: var(--hint-color);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .src-badge {
+        font-size: 11px;
+        color: var(--hint-color);
+        background: var(--card-bg-2);
+        border: 1px solid var(--border-color);
+        border-radius: 5px;
+        padding: 1px 7px;
+    }
+
+    /* Список токенов */
+    .token-list {
+        display: flex;
+        flex-direction: column;
+        padding: 0 16px;
+    }
+
+    .token-item {
+        border-bottom: 1px solid var(--border-color);
+        overflow: hidden;
+    }
+
+    .token-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        cursor: pointer;
+        user-select: none;
+        gap: 8px;
+    }
+
+    .token-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .token-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 16px;
+        color: #fff;
+        flex-shrink: 0;
+    }
+
+    .token-names {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+    }
+
+    .token-name {
+        font-weight: 500;
+        font-size: 15px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .token-meta {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .token-ticker {
+        font-size: 13px;
+        color: var(--hint-color);
+    }
+
+    .apr-badge {
+        font-size: 11px;
+        color: var(--hint-color);
+        background: var(--card-bg-2);
+        border: 1px solid var(--border-color);
+        border-radius: 5px;
+        padding: 1px 6px;
+        white-space: nowrap;
+    }
+
+    .live-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--green);
+        display: inline-block;
+        margin-left: 2px;
+        box-shadow: 0 0 6px var(--green);
+    }
+
+    .token-price-info {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 4px;
+        flex-shrink: 0;
+    }
+
+    .token-price {
+        font-weight: 600;
+        font-size: 15px;
+        white-space: nowrap;
+    }
+
+    .token-change {
+        font-size: 13px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 3px;
+    }
+
+    .positive { color: var(--green); }
+    .negative { color: var(--red); }
+
+    /* Стрелочка */
+    .chevron {
+        width: 7px;
+        height: 7px;
+        border-right: 2px solid var(--hint-color);
+        border-bottom: 2px solid var(--hint-color);
+        transform: rotate(45deg);
+        transition: transform 0.25s ease, border-color 0.25s ease;
+        flex-shrink: 0;
+        margin-left: 2px;
+    }
+
+    .token-item.expanded .chevron {
+        transform: rotate(-135deg);
+        border-color: var(--button-color);
+    }
+
+    /* Контейнер раскрытия */
+    .chart-wrapper {
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease, opacity 0.35s ease;
+    }
+
+    .token-item.expanded .chart-wrapper {
+        max-height: 460px;
+        opacity: 1;
+        padding-bottom: 16px;
+    }
+
+    /* Двухколоночный ряд: график + карточка активности */
+    .expand-row {
+        display: flex;
+        gap: 10px;
+        align-items: stretch;
+    }
+
+    .chart-col {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Детальный график */
+    .chart-container {
+        height: 150px;
+        position: relative;
+    }
+
+    .chart-loading {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        color: var(--hint-color);
+    }
+
+    .date-range {
+        display: flex;
+        justify-content: space-between;
+        font-size: 10px;
+        color: var(--hint-color);
+        padding: 4px 2px 10px;
+    }
+
+    /* Таймфреймы */
+    .timeframe-pills {
+        display: flex;
+        gap: 6px;
+        margin-top: auto;
+    }
+
+    .pill {
+        flex: 1;
+        padding: 6px 0;
+        border-radius: 6px;
+        border: none;
+        background-color: var(--card-bg);
+        color: var(--hint-color);
+        font-size: 11px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.2s, color 0.2s;
+    }
+
+    .pill.active {
+        background-color: var(--button-color);
+        color: #fff;
+    }
+
+    /* Карточка "Торговая активность" */
+    .ur-card {
+        width: 118px;
+        flex-shrink: 0;
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .ur-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 4px;
+    }
+
+    .ur-badge {
+        background-color: var(--button-color);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 2px 7px;
+        border-radius: 5px;
+        line-height: 1.4;
+    }
+
+    .ur-percent {
+        font-size: 11px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .ur-value {
+        font-size: 22px;
+        font-weight: 700;
+        line-height: 1.1;
+    }
+
+    .ur-caption {
+        font-size: 9.5px;
+        color: var(--hint-color);
+        line-height: 1.3;
+    }
+
+    .ur-volume-label {
+        font-size: 10px;
+        color: var(--hint-color);
+        margin-top: 2px;
+    }
+
+    .ur-bar {
+        display: flex;
+        width: 100%;
+        height: 5px;
+        border-radius: 3px;
+        overflow: hidden;
+        background: var(--border-color);
+    }
+
+    .ur-bar .buy { background-color: var(--green); height: 100%; }
+    .ur-bar .sell { background-color: var(--red); height: 100%; }
+
+    .ur-bar-labels {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        font-size: 8.5px;
+        line-height: 1.3;
+    }
+
+    .ur-bar-labels .buy-label { color: var(--green); }
+    .ur-bar-labels .sell-label { color: var(--red); }
+
+    /* Нижняя навигация */
+    .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background-color: var(--card-bg);
+        display: flex;
+        justify-content: space-around;
+        padding: 10px 0 calc(12px + env(safe-area-inset-bottom, 0px));
+        border-top: 1px solid var(--border-color);
+        z-index: 100;
+    }
+
+    .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px;
+        color: var(--hint-color);
+        cursor: pointer;
+        flex: 1;
+    }
+
+    .nav-item.active {
+        color: var(--button-color);
+    }
+
+    .nav-icon {
+        font-size: 19px;
+    }
+
+    /* ===== Настройки (bottom sheet) ===== */
+    .sheet-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.55);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease;
+        z-index: 200;
+    }
+
+    .sheet-overlay.open {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .sheet {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--card-bg);
+        border-radius: 18px 18px 0 0;
+        padding: 10px 16px calc(20px + env(safe-area-inset-bottom, 0px));
+        transform: translateY(105%);
+        transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+        z-index: 201;
+        max-height: 88vh;
+        overflow-y: auto;
+    }
+
+    .sheet.open {
+        transform: translateY(0);
+    }
+
+    .sheet-handle {
+        width: 40px;
+        height: 4px;
+        border-radius: 2px;
+        background: var(--border-color);
+        margin: 4px auto 14px;
+    }
+
+    .sheet-title {
+        font-size: 17px;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+
+    .sheet-sub {
+        font-size: 12px;
+        color: var(--hint-color);
+        margin-bottom: 16px;
+    }
+
+    .sheet-section {
+        margin-bottom: 18px;
+    }
+
+    .sheet-section-title {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        color: var(--hint-color);
+        margin-bottom: 8px;
+    }
+
+    .opt-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .opt {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        background: var(--card-bg-2);
+        border: 1px solid var(--border-color);
+        cursor: pointer;
+        transition: border-color 0.2s, background 0.2s;
+    }
+
+    .opt.selected {
+        border-color: var(--button-color);
+        background: rgba(46, 166, 255, 0.1);
+    }
+
+    .opt-radio {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: 2px solid var(--hint-color);
+        flex-shrink: 0;
+        position: relative;
+        transition: border-color 0.2s;
+    }
+
+    .opt.selected .opt-radio {
+        border-color: var(--button-color);
+    }
+
+    .opt.selected .opt-radio::after {
+        content: '';
+        position: absolute;
+        inset: 3px;
+        border-radius: 50%;
+        background: var(--button-color);
+    }
+
+    .opt-text {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+    }
+
+    .opt-label {
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+    .opt-note {
+        font-size: 12px;
+        color: var(--hint-color);
+    }
+
+    .sheet-apply {
+        width: 100%;
+        padding: 14px;
+        border: none;
+        border-radius: 12px;
+        background: var(--button-color);
+        color: #fff;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 4px;
+    }
+
+    .sheet-apply:active { opacity: 0.85; }
+
+    .toast {
+        position: fixed;
+        left: 50%;
+        bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+        transform: translateX(-50%) translateY(20px);
+        background: rgba(0, 0, 0, 0.85);
+        color: #fff;
+        font-size: 13px;
+        padding: 10px 16px;
+        border-radius: 10px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s, transform 0.25s;
+        z-index: 300;
+        max-width: 90%;
+        text-align: center;
+    }
+
+    .toast.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    .spinner {
+        width: 14px;
+        height: 14px;
+        border: 2px solid var(--border-color);
+        border-top-color: var(--button-color);
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+        display: inline-block;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-left">
+        <span class="icon-btn back-arrow">←</span>
+        <span>Кошёлёк</span>
+        <span class="icon-btn" style="font-size:12px;">▾</span>
+    </div>
+    <div class="header-right">
+        <span class="icon-btn" id="refreshBtn" title="Обновить">⟳</span>
+        <span class="icon-btn" id="settingsBtn" title="Настройки">⋮</span>
+    </div>
+</div>
+
+<div class="search-bar">
+    <span>🔍</span>
+    <input type="text" id="searchInput" placeholder="Поиск по тикеру или названию">
+</div>
+
+<div class="tabs">
+    <div class="tab active" data-filter="all">Все</div>
+    <div class="tab" data-filter="tokens">Токены</div>
+    <div class="tab" data-filter="stocks">Акции</div>
+    <div class="tab" data-filter="funds">Фонды</div>
+</div>
+
+<div class="section-label">
+    <span>Активы в токенах</span>
+    <span class="src-badge" id="srcBadge">—</span>
+</div>
+
+<div class="token-list" id="tokenList">
+    <!-- Элементы списка генерируются через JS -->
+</div>
+
+<!-- Нижняя навигация -->
+<div class="bottom-nav">
+    <div class="nav-item">
+        <span class="nav-icon">🏦</span>
+        <span>Резерв</span>
+    </div>
+    <div class="nav-item active">
+        <span class="nav-icon">%</span>
+        <span>Доход</span>
+    </div>
+    <div class="nav-item">
+        <span class="nav-icon">💼</span>
+        <span>Портфель</span>
+    </div>
+</div>
+
+<!-- Настройки: выбор API-поставщика -->
+<div class="sheet-overlay" id="sheetOverlay"></div>
+<div class="sheet" id="settingsSheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Настройки данных</div>
+    <div class="sheet-sub">Выберите API-поставщиков курса и цен</div>
+
+    <div class="sheet-section">
+        <div class="sheet-section-title">Курс USD → ₽</div>
+        <div class="opt-list" id="rateOpts"></div>
+    </div>
+
+    <div class="sheet-section">
+        <div class="sheet-section-title">Источник цен</div>
+        <div class="opt-list" id="priceOpts"></div>
+    </div>
+
+    <button class="sheet-apply" id="applyBtn">Применить</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+    /* ============================================================
+       Telegram WebApp init (безопасно и вне Telegram)
+       ============================================================ */
+    const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+    if (tg) {
+        try { tg.ready(); tg.expand(); } catch (e) {}
+    }
+
+    /* ============================================================
+       Прокси (Vercel serverless) — обходит CORS и гео-ограничения
+       ============================================================ */
+    const PROXY = '/api/proxy?url=';
+
+    async function proxyFetch(url, retries = 2) {
+        for (let i = 0; i <= retries; i++) {
+            const res = await fetch(PROXY + encodeURIComponent(url));
+            if (res.status === 429 && i < retries) {
+                await new Promise(r => setTimeout(r, 1200 * (i + 1)));
+                continue;
+            }
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return await res.json();
+        }
+        throw new Error('HTTP 429');
+    }
+
+    /* ============================================================
+       ДАННЫЕ ТОКЕНОВ
+       real: true — тянем реальные данные; иначе — демо-данные
+       Поля cgId/kraken/okx/kucoin/coinbase/coinlore — символы
+       для соответствующего поставщика.
+       ============================================================ */
+    const tokens = [
+        { id: 'gram', name: 'Gram (бывш. Toncoin)', ticker: 'GRAM', price: 122.62, change: 1.14, apr: 12.81, icon: '💎', iconBg: '#2ea6ff', real: true,
+          cgId: 'the-open-network', kraken: 'TONUSD', okx: null, kucoin: null, coinbase: 'TON-USD', coinlore: '54683' },
+        { id: 'usdt', name: 'USDT', ticker: 'USDT', price: 83.99, change: -0.14, apr: 4.63, icon: '₮', iconBg: '#26a17b', real: true,
+          cgId: 'tether', kraken: 'USDTUSD', okx: null, kucoin: 'USDT-USDC', coinbase: 'USDT-USD', coinlore: '518' },
+        { id: 'tonstakers', name: 'Tonstakers TON', ticker: 'tsTON', price: 142.22, change: 1.19, icon: '💧', iconBg: '#0098ea', real: false },
+        { id: 'utya', name: 'Utya', ticker: 'UTYA', price: 2.59, change: 6.09, icon: '🦆', iconBg: '#ffcc00', real: false },
+        { id: 'atf', name: 'AI Trading Forex', ticker: 'ATF', price: 0.05, change: -3.32, icon: '🤖', iconBg: '#333', real: false },
+        { id: 'redo', name: 'Resistance Dog', ticker: 'REDO', price: 5.00, change: 5.01, icon: '🐕', iconBg: '#ff4500', real: false },
+        { id: 'cherry', name: 'Hot Cherry', ticker: 'CHERRY', price: 0.01, change: -1.78, icon: '🍒', iconBg: '#ff69b4', real: false },
+        { id: 'dogs', name: 'Dogs', ticker: 'DOGS', price: 0.01, change: 1.15, icon: '🐶', iconBg: '#8b4513', real: true,
+          cgId: 'dogs-2', kraken: 'DOGSUSD', okx: 'DOGS-USDT', kucoin: 'DOGS-USDT', coinbase: null, coinlore: '147569' }
+    ];
+
+    /* ============================================================
+       ПОСТАВЩИКИ КУРСА (USD → RUB)
+       ============================================================ */
+    const rateProviders = {
+        coingecko: {
+            label: 'CoinGecko',
+            note: 'Курс по USDT/₽',
+            async rate() {
+                const d = await proxyFetch('https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=rub');
+                return d.tether.rub;
+            }
+        },
+        cbr: {
+            label: 'ЦБ РФ',
+            note: 'Официальный курс ЦБ',
+            async rate() {
+                const d = await proxyFetch('https://www.cbr-xml-daily.ru/daily_json.js');
+                return d.Valute.USD.Value;
+            }
+        },
+        erapi: {
+            label: 'ExchangeRate-API',
+            note: 'open.er-api.com',
+            async rate() {
+                const d = await proxyFetch('https://open.er-api.com/v6/latest/USD');
+                return d.rates.RUB;
+            }
+        }
+    };
+
+    /* ============================================================
+       ПОСТАВЩИКИ ЦЕН
+       prices(list) -> { tokenId: { price, change, currency } }
+       history(token, tf) -> [{ t, v }] | null
+       ============================================================ */
+    const priceProviders = {
+        coingecko: {
+            label: 'CoinGecko',
+            note: 'Прямые цены в ₽ · графики',
+            async prices(list) {
+                const real = list.filter(t => t.real && t.cgId);
+                if (!real.length) return {};
+                const ids = real.map(t => t.cgId).join(',');
+                const d = await proxyFetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=rub&include_24hr_change=true`);
+                const out = {};
+                real.forEach(t => {
+                    const r = d[t.cgId];
+                    if (r && r.rub != null) out[t.id] = { price: r.rub, change: r.rub_24h_change || 0, currency: 'RUB' };
+                });
+                return out;
+            },
+            async history(t, tf) {
+                const days = { '1D': 1, '7D': 7, '1M': 30, '1Y': 365, 'ALL': 'max' }[tf] || 1;
+                const d = await proxyFetch(`https://api.coingecko.com/api/v3/coins/${t.cgId}/market_chart?vs_currency=rub&days=${days}`);
+                if (!d.prices) return null;
+                return d.prices.map(p => ({ t: p[0], v: p[1] }));
+            }
+        },
+        kraken: {
+            label: 'Kraken',
+            note: 'USD → ₽ · графики',
+            async prices(list) {
+                const out = {};
+                for (const t of list) {
+                    if (!t.real || !t.kraken) continue;
+                    try {
+                        const d = await proxyFetch(`https://api.kraken.com/0/public/Ticker?pair=${t.kraken}`);
+                        const key = Object.keys(d.result || {})[0];
+                        if (!key) continue;
+                        const r = d.result[key];
+                        const last = parseFloat(r.c[0]);
+                        const open = parseFloat(r.o);
+                        out[t.id] = { price: last, change: open ? (last - open) / open * 100 : 0, currency: 'USD' };
+                    } catch (e) {}
+                }
+                return out;
+            },
+            async history(t, tf) {
+                const interval = { '1D': 60, '7D': 60, '1M': 1440, '1Y': 1440, 'ALL': 10080 }[tf] || 60;
+                const d = await proxyFetch(`https://api.kraken.com/0/public/OHLC?pair=${t.kraken}&interval=${interval}`);
+                const key = Object.keys(d.result || {}).find(k => k !== 'last');
+                if (!key) return null;
+                return d.result[key].map(r => ({ t: r[0] * 1000, v: parseFloat(r[4]) }));
+            }
+        },
+        okx: {
+            label: 'OKX',
+            note: 'USDT → ₽ · графики',
+            async prices(list) {
+                const out = {};
+                for (const t of list) {
+                    if (!t.real || !t.okx) continue;
+                    try {
+                        const d = await proxyFetch(`https://www.okx.com/api/v5/market/ticker?instId=${t.okx}`);
+                        const r = d.data && d.data[0];
+                        if (!r) continue;
+                        const last = parseFloat(r.last);
+                        const open = parseFloat(r.open24h);
+                        out[t.id] = { price: last, change: open ? (last - open) / open * 100 : 0, currency: 'USD' };
+                    } catch (e) {}
+                }
+                return out;
+            },
+            async history(t, tf) {
+                const bar = { '1D': '1H', '7D': '4H', '1M': '1D', '1Y': '1D', 'ALL': '1W' }[tf] || '1H';
+                const d = await proxyFetch(`https://www.okx.com/api/v5/market/candles?instId=${t.okx}&bar=${bar}&limit=100`);
+                if (!d.data) return null;
+                return d.data.map(r => ({ t: parseInt(r[0]), v: parseFloat(r[4]) })).reverse();
+            }
+        },
+        kucoin: {
+            label: 'KuCoin',
+            note: 'USDT → ₽ · графики',
+            async prices(list) {
+                const out = {};
+                for (const t of list) {
+                    if (!t.real || !t.kucoin) continue;
+                    try {
+                        const d = await proxyFetch(`https://api.kucoin.com/api/v1/market/stats?symbol=${t.kucoin}`);
+                        const r = d.data;
+                        if (!r) continue;
+                        out[t.id] = { price: parseFloat(r.last), change: parseFloat(r.changeRate) * 100, currency: 'USD' };
+                    } catch (e) {}
+                }
+                return out;
+            },
+            async history(t, tf) {
+                const type = { '1D': '1hour', '7D': '4hour', '1M': '1day', '1Y': '1day', 'ALL': '1week' }[tf] || '1hour';
+                const d = await proxyFetch(`https://api.kucoin.com/api/v1/market/candles?type=${type}&symbol=${t.kucoin}`);
+                if (!d.data) return null;
+                return d.data.map(r => ({ t: parseInt(r[0]) * 1000, v: parseFloat(r[2]) })).reverse();
+            }
+        },
+        coinbase: {
+            label: 'Coinbase',
+            note: 'USD → ₽ · графики',
+            async prices(list) {
+                const out = {};
+                for (const t of list) {
+                    if (!t.real || !t.coinbase) continue;
+                    try {
+                        const d = await proxyFetch(`https://api.exchange.coinbase.com/products/${t.coinbase}/stats`);
+                        const last = parseFloat(d.last);
+                        const open = parseFloat(d.open);
+                        out[t.id] = { price: last, change: open ? (last - open) / open * 100 : 0, currency: 'USD' };
+                    } catch (e) {}
+                }
+                return out;
+            },
+            async history(t, tf) {
+                const gran = { '1D': 3600, '7D': 21600, '1M': 86400, '1Y': 86400, 'ALL': 86400 }[tf] || 3600;
+                const d = await proxyFetch(`https://api.exchange.coinbase.com/products/${t.coinbase}/candles?granularity=${gran}`);
+                if (!Array.isArray(d)) return null;
+                return d.map(r => ({ t: r[0] * 1000, v: r[4] })).reverse();
+            }
+        },
+        coinlore: {
+            label: 'CoinLore',
+            note: 'USD → ₽ · без графиков',
+            async prices(list) {
+                const real = list.filter(t => t.real && t.coinlore);
+                if (!real.length) return {};
+                const ids = real.map(t => t.coinlore).join(',');
+                const d = await proxyFetch(`https://api.coinlore.net/api/ticker/?id=${ids}`);
+                const out = {};
+                (d || []).forEach(r => {
+                    const t = real.find(x => x.coinlore === r.id);
+                    if (t) out[t.id] = { price: parseFloat(r.price_usd), change: parseFloat(r.percent_change_24h) || 0, currency: 'USD' };
+                });
+                return out;
+            },
+            async history() { return null; } // нет бесплатной истории → демо-график
+        }
+    };
+
+    /* ============================================================
+       СОСТОЯНИЕ
+       ============================================================ */
+    const state = {
+        priceProvider: localStorage.getItem('priceProvider') || 'coingecko',
+        rateProvider: localStorage.getItem('rateProvider') || 'coingecko',
+        usdRub: null,
+        filter: 'all',
+        query: ''
+    };
+    if (!priceProviders[state.priceProvider]) state.priceProvider = 'coingecko';
+    if (!rateProviders[state.rateProvider]) state.rateProvider = 'coingecko';
+
+    const tokenListEl = document.getElementById('tokenList');
+    const charts = {};
+
+    /* ============================================================
+       ФОРМАТИРОВАНИЕ
+       ============================================================ */
+    function formatRub(v) {
+        if (v == null || isNaN(v)) return '—';
+        let d = 2;
+        if (v < 0.01) d = 6;
+        else if (v < 1) d = 4;
+        return v.toLocaleString('ru-RU', { minimumFractionDigits: d, maximumFractionDigits: d }) + ' ₽';
+    }
+    function formatPercent(v) {
+        return (v > 0 ? '+' : '') + v.toFixed(2) + '%';
+    }
+
+    /* ============================================================
+       КУРС USD → RUB (с кэшем)
+       ============================================================ */
+    async function getUsdRub(force) {
+        if (state.usdRub && !force) return state.usdRub;
+        const prov = rateProviders[state.rateProvider];
+        const r = await prov.rate();
+        if (!r || isNaN(r)) throw new Error('bad rate');
+        state.usdRub = r;
+        return r;
+    }
+
+    /* ============================================================
+       ЗАГРУЗКА ЦЕН
+       ============================================================ */
+    async function loadPrices() {
+        const badge = document.getElementById('srcBadge');
+        badge.innerHTML = '<span class="spinner"></span>';
+
+        // Порядок: выбранный поставщик, затем остальные как резерв
+        const order = [state.priceProvider, ...Object.keys(priceProviders).filter(p => p !== state.priceProvider)];
+
+        let raw = null, used = null, lastErr = null;
+        for (const pid of order) {
+            try {
+                const r = await priceProviders[pid].prices(tokens);
+                if (r && Object.keys(r).length) { raw = r; used = pid; break; }
+            } catch (e) { lastErr = e; }
+        }
+
+        if (!raw) {
+            console.error('loadPrices', lastErr);
+            badge.textContent = 'ошибка';
+            showToast('Не удалось загрузить цены: ' + (lastErr ? lastErr.message : 'нет данных'));
+            renderTokenList();
+            return;
+        }
+
+        const needsRate = Object.values(raw).some(r => r.currency === 'USD');
+        let rate = null;
+        if (needsRate) {
+            try { rate = await getUsdRub(true); } catch (e) { rate = null; }
+        }
+
+        tokens.forEach(t => {
+            const r = raw[t.id];
+            if (!r) { t.live = false; return; }
+            let p = r.price;
+            if (r.currency === 'USD') {
+                if (!rate) { t.live = false; return; }
+                p *= rate;
+            }
+            t.price = p;
+            t.change = r.change;
+            t.live = true;
+        });
+
+        const fallback = used !== state.priceProvider ? ' (резерв)' : '';
+        badge.textContent = priceProviders[used].label + fallback + (rate ? ' · ' + rate.toFixed(2) + ' ₽' : '');
+        renderTokenList();
+    }
+
+    /* ============================================================
+       ДЕМО-СЕРИЯ ДЛЯ ГРАФИКА
+       ============================================================ */
+    function generateMockSeries(basePrice, tf) {
+        const cfg = {
+            '1D': { n: 96, vol: 0.004, span: 24 * 3600 * 1000 },
+            '7D': { n: 84, vol: 0.009, span: 7 * 24 * 3600 * 1000 },
+            '1M': { n: 60, vol: 0.016, span: 30 * 24 * 3600 * 1000 },
+            '1Y': { n: 60, vol: 0.026, span: 365 * 24 * 3600 * 1000 },
+            'ALL': { n: 80, vol: 0.04, span: 3 * 365 * 24 * 3600 * 1000 }
+        }[tf] || { n: 96, vol: 0.004, span: 24 * 3600 * 1000 };
+
+        const now = Date.now();
+        const out = [];
+        let p = basePrice * (1 - Math.random() * 0.05);
+        for (let i = 0; i < cfg.n; i++) {
+            const change = (Math.random() - 0.5) * cfg.vol * p;
+            const trend = (basePrice - p) / (cfg.n - i);
+            p += change + trend;
+            if (p < 1e-9) p = 1e-9;
+            out.push({ t: now - cfg.span + (cfg.span * i / (cfg.n - 1)), v: p });
+        }
+        out[out.length - 1].v = basePrice;
+        return out;
+    }
+
+    // Окно и число точек для каждого таймфрейма
+    const TF = {
+        '1D':  { ms: 24 * 3600 * 1000,        pts: 24 },
+        '7D':  { ms: 7 * 24 * 3600 * 1000,    pts: 84 },
+        '1M':  { ms: 30 * 24 * 3600 * 1000,   pts: 60 },
+        '1Y':  { ms: 365 * 24 * 3600 * 1000,  pts: 73 },
+        'ALL': { ms: 3 * 365 * 24 * 3600 * 1000, pts: 100 }
+    };
+
+    function downsample(points, max) {
+        if (points.length <= max) return points;
+        const step = points.length / max;
+        const out = [];
+        for (let i = 0; i < max; i++) out.push(points[Math.floor(i * step)]);
+        out[out.length - 1] = points[points.length - 1];
+        return out;
+    }
+
+    // Приводим любую серию к окну выбранного таймфрейма
+    function normalizeSeries(points, tf) {
+        if (!points || points.length < 2) return null;
+        const cfg = TF[tf] || TF['1D'];
+        const last = points[points.length - 1].t;
+        const cutoff = last - cfg.ms;
+        let filtered = points.filter(p => p.t >= cutoff);
+        if (filtered.length < 2) filtered = points;
+        return downsample(filtered, cfg.pts);
+    }
+
+    function labelFor(ts, tf) {
+        const d = new Date(ts);
+        if (tf === '1D') return d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+        if (tf === '7D' || tf === '1M') return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+        if (tf === '1Y') return d.toLocaleDateString('ru-RU', { month: 'short', year: '2-digit' });
+        return d.toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
+    }
+
+    /* ============================================================
+       ОТРИСОВКА ГРАФИКА
+       ============================================================ */
+    async function drawChart(tokenId, token, tf) {
+        const canvas = document.getElementById(`chart-${tokenId}`);
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (charts[tokenId]) { charts[tokenId].destroy(); delete charts[tokenId]; }
+
+        const loadingEl = document.querySelector(`#item-${tokenId} .chart-loading`);
+        if (loadingEl) loadingEl.style.display = 'flex';
+
+        let points = null;
+        if (token.real) {
+            // пробуем выбранного поставщика, затем CoinGecko как резерв
+            const histOrder = [state.priceProvider, 'coingecko'].filter((v, i, a) => a.indexOf(v) === i);
+            for (const pid of histOrder) {
+                try {
+                    let pts = await priceProviders[pid].history(token, tf);
+                    if (pts && pts.length >= 2) {
+                        if (pid !== 'coingecko') {
+                            const rate = await getUsdRub();
+                            pts = pts.map(p => ({ t: p.t, v: p.v * rate }));
+                        }
+                        pts = normalizeSeries(pts, tf);
+                        if (pts && pts.length >= 2) { points = pts; break; }
+                    }
+                } catch (e) { /* пробуем следующий */ }
+            }
+        }
+        if (!points || points.length < 2) points = generateMockSeries(token.price, tf);
+
+        if (loadingEl) loadingEl.style.display = 'none';
+
+        const data = points.map(p => p.v);
+        const labels = points.map(p => labelFor(p.t, tf));
+        const isPositive = token.change >= 0;
+        const color = isPositive ? '#34c759' : '#ff3b30';
+
+        const gradient = ctx.createLinearGradient(0, 0, 0, 150);
+        gradient.addColorStop(0, isPositive ? 'rgba(52, 199, 89, 0.35)' : 'rgba(255, 59, 48, 0.35)');
+        gradient.addColorStop(1, 'rgba(0,0,0,0)');
+
+        charts[tokenId] = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    borderColor: color,
+                    backgroundColor: gradient,
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    pointHoverRadius: 4,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: { duration: 300 },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: { label: (c) => formatRub(c.parsed.y) }
+                    }
+                },
+                scales: {
+                    x: {
+                        display: true,
+                        grid: { display: false },
+                        ticks: { color: '#8e8e93', font: { size: 9 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 5 }
+                    },
+                    y: {
+                        display: false,
+                        min: Math.min(...data) * 0.98,
+                        max: Math.max(...data) * 1.02
+                    }
+                },
+                layout: { padding: { top: 8, bottom: 0, left: 0, right: 0 } }
+            }
+        });
+
+        updateDateRange(tokenId, points);
+    }
+
+    function updateDateRange(tokenId, points) {
+        const el = document.querySelector(`#item-${tokenId} .date-range`);
+        if (!el || !points || !points.length) return;
+        const fmt = (ts) => {
+            const d = new Date(ts);
+            return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }) + ', ' +
+                   d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+        };
+        el.innerHTML = `<span>${fmt(points[0].t)}</span><span>${fmt(points[points.length - 1].t)}</span>`;
+    }
+
+    /* ============================================================
+       КАРТОЧКА "ТОРГОВАЯ АКТИВНОСТЬ"
+       ============================================================ */
+    function seededRandom(seed) {
+        let x = 0;
+        for (let i = 0; i < seed.length; i++) x = (x * 31 + seed.charCodeAt(i)) % 100000;
+        return () => {
+            x = (x * 9301 + 49297) % 233280;
+            return x / 233280;
+        };
+    }
+
+    function fillUrCard(tokenId, token) {
+        const rand = seededRandom(tokenId);
+        const urChange = (rand() * 4 - 2);
+        const urValue = (1 + rand() * 3).toFixed(2).replace('.', ',');
+        const buyShare = Math.round(35 + rand() * 30);
+        const sellShare = 100 - buyShare;
+        const volume = (2 + rand() * 8).toFixed(1).replace('.', ',');
+
+        const card = document.querySelector(`#item-${tokenId} .ur-card`);
+        if (!card) return;
+
+        const changeClass = urChange >= 0 ? 'positive' : 'negative';
+        const changeArrow = urChange >= 0 ? '↑' : '↓';
+        const valueColor = urChange >= 0 ? 'var(--green)' : 'var(--red)';
+
+        card.innerHTML = `
+            <div class="ur-top">
+                <span class="ur-badge">ur</span>
+                <span class="ur-percent ${changeClass}">${changeArrow}${Math.abs(urChange).toFixed(2)}%</span>
+            </div>
+            <div class="ur-value" style="color:${valueColor}">${urValue}</div>
+            <div class="ur-caption">Торговая активность за 24 ч</div>
+            <div class="ur-volume-label">Объём</div>
+            <div class="ur-bar">
+                <div class="buy" style="width:${buyShare}%"></div>
+                <div class="sell" style="width:${sellShare}%"></div>
+            </div>
+            <div class="ur-bar-labels">
+                <span class="buy-label">Покупка · ${volume} тыс. $</span>
+                <span class="sell-label">${volume} тыс. $ · Продажа</span>
+            </div>
+        `;
+    }
+
+    /* ============================================================
+       ОТРИСОВКА СПИСКА
+       ============================================================ */
+    function visibleTokens() {
+        let list = tokens;
+        if (state.filter === 'tokens') list = tokens; // все элементы — токены
+        else if (state.filter === 'stocks' || state.filter === 'funds') list = [];
+        if (state.query) {
+            const q = state.query.toLowerCase();
+            list = list.filter(t => t.name.toLowerCase().includes(q) || t.ticker.toLowerCase().includes(q));
+        }
+        return list;
+    }
+
+    function renderTokenList() {
+        const list = visibleTokens();
+        if (!list.length) {
+            tokenListEl.innerHTML = '<div style="padding:24px 0;text-align:center;color:var(--hint-color);font-size:14px;">Ничего не найдено</div>';
+            return;
+        }
+        tokenListEl.innerHTML = list.map(token => {
+            const changeClass = token.change >= 0 ? 'positive' : 'negative';
+            const changeSymbol = token.change >= 0 ? '↑' : '↓';
+            const aprBadge = token.apr !== undefined
+                ? `<span class="apr-badge">${token.apr.toFixed(2).replace('.', ',')}% годовых</span>`
+                : '';
+            const liveDot = token.live ? '<span class="live-dot"></span>' : '';
+
+            return `
+                <div class="token-item" id="item-${token.id}" data-id="${token.id}">
+                    <div class="token-header">
+                        <div class="token-info">
+                            <div class="token-icon" style="background-color: ${token.iconBg}">${token.icon}</div>
+                            <div class="token-names">
+                                <span class="token-name">${token.name}</span>
+                                <div class="token-meta">
+                                    <span class="token-ticker">${token.ticker}</span>
+                                    ${aprBadge}
+                                    ${liveDot}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="token-price-info">
+                            <span class="token-price">${formatRub(token.price)}</span>
+                            <span class="token-change ${changeClass}">${changeSymbol} ${Math.abs(token.change).toFixed(2)}%</span>
+                        </div>
+                        <div class="chevron"></div>
+                    </div>
+                    <div class="chart-wrapper">
+                        <div class="expand-row">
+                            <div class="chart-col">
+                                <div class="chart-container">
+                                    <canvas id="chart-${token.id}"></canvas>
+                                    <div class="chart-loading" style="display:none;">Загрузка…</div>
+                                </div>
+                                <div class="date-range"></div>
+                                <div class="timeframe-pills">
+                                    <button class="pill active" data-tf="1D">1Д</button>
+                                    <button class="pill" data-tf="7D">7Д</button>
+                                    <button class="pill" data-tf="1M">1М</button>
+                                    <button class="pill" data-tf="1Y">1Г</button>
+                                    <button class="pill" data-tf="ALL">Всё</button>
+                                </div>
+                            </div>
+                            <div class="ur-card"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        attachHandlers();
+    }
+
+    function attachHandlers() {
+        // Аккордеон
+        document.querySelectorAll('.token-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const item = header.closest('.token-item');
+                const tokenId = item.dataset.id;
+                const token = tokens.find(t => t.id === tokenId);
+                const wasExpanded = item.classList.contains('expanded');
+
+                document.querySelectorAll('.token-item.expanded').forEach(el => {
+                    if (el !== item) {
+                        el.classList.remove('expanded');
+                        const id = el.dataset.id;
+                        if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+                    }
+                });
+
+                if (wasExpanded) {
+                    item.classList.remove('expanded');
+                    if (charts[tokenId]) { charts[tokenId].destroy(); delete charts[tokenId]; }
+                    return;
+                }
+
+                item.classList.add('expanded');
+                fillUrCard(tokenId, token);
+                setTimeout(() => drawChart(tokenId, token, '1D'), 150);
+            });
+        });
+
+        // Таймфреймы
+        document.querySelectorAll('.pill').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const item = btn.closest('.token-item');
+                const tokenId = item.dataset.id;
+                const token = tokens.find(t => t.id === tokenId);
+                item.querySelectorAll('.pill').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                drawChart(tokenId, token, btn.dataset.tf);
+            });
+        });
+    }
+
+    /* ============================================================
+       НАСТРОЙКИ (bottom sheet)
+       ============================================================ */
+    const sheet = document.getElementById('settingsSheet');
+    const overlay = document.getElementById('sheetOverlay');
+
+    function renderOptions() {
+        const rateEl = document.getElementById('rateOpts');
+        rateEl.innerHTML = Object.entries(rateProviders).map(([id, p]) => `
+            <div class="opt ${state.rateProvider === id ? 'selected' : ''}" data-group="rate" data-id="${id}">
+                <span class="opt-radio"></span>
+                <span class="opt-text">
+                    <span class="opt-label">${p.label}</span>
+                    <span class="opt-note">${p.note}</span>
+                </span>
+            </div>
+        `).join('');
+
+        const priceEl = document.getElementById('priceOpts');
+        priceEl.innerHTML = Object.entries(priceProviders).map(([id, p]) => `
+            <div class="opt ${state.priceProvider === id ? 'selected' : ''}" data-group="price" data-id="${id}">
+                <span class="opt-radio"></span>
+                <span class="opt-text">
+                    <span class="opt-label">${p.label}</span>
+                    <span class="opt-note">${p.note}</span>
+                </span>
+            </div>
+        `).join('');
+
+        document.querySelectorAll('.opt').forEach(opt => {
+            opt.addEventListener('click', () => {
+                const group = opt.dataset.group;
+                document.querySelectorAll(`.opt[data-group="${group}"]`).forEach(o => o.classList.remove('selected'));
+                opt.classList.add('selected');
+            });
+        });
+    }
+
+    function openSheet() {
+        renderOptions();
+        overlay.classList.add('open');
+        sheet.classList.add('open');
+    }
+    function closeSheet() {
+        overlay.classList.remove('open');
+        sheet.classList.remove('open');
+    }
+
+    document.getElementById('settingsBtn').addEventListener('click', openSheet);
+    overlay.addEventListener('click', closeSheet);
+
+    document.getElementById('applyBtn').addEventListener('click', async () => {
+        const rateSel = document.querySelector('.opt[data-group="rate"].selected');
+        const priceSel = document.querySelector('.opt[data-group="price"].selected');
+        const newRate = rateSel ? rateSel.dataset.id : state.rateProvider;
+        const newPrice = priceSel ? priceSel.dataset.id : state.priceProvider;
+
+        const changed = newRate !== state.rateProvider || newPrice !== state.priceProvider;
+        state.rateProvider = newRate;
+        state.priceProvider = newPrice;
+        localStorage.setItem('rateProvider', newRate);
+        localStorage.setItem('priceProvider', newPrice);
+        state.usdRub = null;
+
+        closeSheet();
+        if (changed) {
+            showToast('Источник: ' + priceProviders[newPrice].label + ' · курс: ' + rateProviders[newRate].label);
+            await loadPrices();
+        }
+    });
+
+    /* ============================================================
+       ТОСТ
+       ============================================================ */
+    let toastTimer = null;
+    function showToast(msg) {
+        const el = document.getElementById('toast');
+        el.textContent = msg;
+        el.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+    }
+
+    /* ============================================================
+       ПОИСК / ТАБЫ / НАВИГАЦИЯ
+       ============================================================ */
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        state.query = e.target.value.trim();
+        renderTokenList();
+    });
+
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            state.filter = tab.dataset.filter;
+            renderTokenList();
+        });
+    });
+
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', () => {
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            item.classList.add('active');
+        });
+    });
+
+    document.getElementById('refreshBtn').addEventListener('click', () => {
+        state.usdRub = null;
+        loadPrices();
+    });
+
+    /* ============================================================
+       СТАРТ
+       ============================================================ */
+    renderTokenList();
+    loadPrices();
+</script>
+</body>
+</html>
