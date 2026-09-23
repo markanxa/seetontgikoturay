@@ -13,12 +13,22 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Не указан параметр url' });
     }
 
+    // Разрешённые домены: источники цен и курсов
     const allowedDomains = [
+        // Цены
         'api.coingecko.com',
-        'api.binance.com',
-        'api.bybit.com',
+        'api.kraken.com',
         'www.okx.com',
         'api.kucoin.com',
+        'api.exchange.coinbase.com',
+        'api.coinbase.com',
+        'api.coinlore.net',
+        // Курсы USD -> RUB
+        'www.cbr-xml-daily.ru',
+        'open.er-api.com',
+        // Запасные (совместимость)
+        'api.binance.com',
+        'api.bybit.com',
         'api.coincap.io',
         'api.ston.fi'
     ];
