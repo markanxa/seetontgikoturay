@@ -3,12 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Кошёлёк</title>
-<!-- Telegram WebApp API -->
+<title>Кошелёк</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <style>
     :root {
         --bg-color: var(--tg-theme-bg-color, #0f0f0f);
@@ -21,620 +18,152 @@
         --border-color: rgba(128, 128, 128, 0.15);
         --card-bg-2: rgba(255, 255, 255, 0.04);
     }
-
-    * {
-        box-sizing: border-box;
-        -webkit-tap-highlight-color: transparent;
-    }
-
-    html, body {
-        height: 100%;
-    }
-
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; }
     body {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         background-color: var(--bg-color);
         color: var(--text-color);
-        margin: 0;
-        padding: 0;
+        margin: 0; padding: 0;
         padding-top: env(safe-area-inset-top, 0px);
         padding-bottom: calc(78px + env(safe-area-inset-bottom, 0px));
         min-height: 100%;
     }
-
-    /* Шапка */
-    .header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 14px 16px;
-        font-size: 19px;
-        font-weight: 700;
-    }
-
-    .header-left {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .icon-btn {
-        font-size: 20px;
-        cursor: pointer;
-        color: var(--text-color);
-        line-height: 1;
-    }
-
-    .header-right {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        color: var(--hint-color);
-    }
-
-    /* Поиск */
-    .search-bar {
-        margin: 0 16px 14px;
-        background-color: var(--card-bg);
-        border-radius: 10px;
-        padding: 10px 14px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        color: var(--hint-color);
-        font-size: 14px;
-    }
-
-    .search-bar input {
-        background: transparent;
-        border: none;
-        outline: none;
-        color: var(--text-color);
-        font-size: 14px;
-        width: 100%;
-    }
-
+    .header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; font-size: 19px; font-weight: 700; }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .icon-btn { font-size: 20px; cursor: pointer; color: var(--text-color); line-height: 1; }
+    .header-right { display: flex; align-items: center; gap: 14px; color: var(--hint-color); }
+    .search-bar { margin: 0 16px 14px; background-color: var(--card-bg); border-radius: 10px; padding: 10px 14px; display: flex; align-items: center; gap: 8px; color: var(--hint-color); font-size: 14px; }
+    .search-bar input { background: transparent; border: none; outline: none; color: var(--text-color); font-size: 14px; width: 100%; }
     .search-bar input::placeholder { color: var(--hint-color); }
-
-    /* Табы (верхние) */
-    .tabs {
-        display: flex;
-        gap: 22px;
-        padding: 0 16px;
-        border-bottom: 1px solid var(--border-color);
-        margin-bottom: 4px;
-        overflow-x: auto;
-    }
-
-    .tab {
-        padding: 8px 0;
-        font-size: 15px;
-        color: var(--hint-color);
-        cursor: pointer;
-        border-bottom: 2px solid transparent;
-        white-space: nowrap;
-    }
-
-    .tab.active {
-        color: var(--text-color);
-        border-bottom-color: var(--button-color);
-        font-weight: 600;
-    }
-
-    .section-label {
-        padding: 14px 16px 6px;
-        font-size: 13px;
-        color: var(--hint-color);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
-
-    .src-badge {
-        font-size: 11px;
-        color: var(--hint-color);
-        background: var(--card-bg-2);
-        border: 1px solid var(--border-color);
-        border-radius: 5px;
-        padding: 1px 7px;
-    }
-
-    /* Список токенов */
-    .token-list {
-        display: flex;
-        flex-direction: column;
-        padding: 0 16px;
-    }
-
-    .token-item {
-        border-bottom: 1px solid var(--border-color);
-        overflow: hidden;
-    }
-
-    .token-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 12px 0;
-        cursor: pointer;
-        user-select: none;
-        gap: 8px;
-    }
-
-    .token-info {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        flex: 1;
-        min-width: 0;
-    }
-
-    .token-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        font-size: 16px;
-        color: #fff;
-        flex-shrink: 0;
-    }
-
-    .token-names {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        min-width: 0;
-    }
-
-    .token-name {
-        font-weight: 500;
-        font-size: 15px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .token-meta {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .token-ticker {
-        font-size: 13px;
-        color: var(--hint-color);
-    }
-
-    .apr-badge {
-        font-size: 11px;
-        color: var(--hint-color);
-        background: var(--card-bg-2);
-        border: 1px solid var(--border-color);
-        border-radius: 5px;
-        padding: 1px 6px;
-        white-space: nowrap;
-    }
-
-    .live-dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: var(--green);
-        display: inline-block;
-        margin-left: 2px;
-        box-shadow: 0 0 6px var(--green);
-    }
-
-    .token-price-info {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-        gap: 4px;
-        flex-shrink: 0;
-    }
-
-    .token-price {
-        font-weight: 600;
-        font-size: 15px;
-        white-space: nowrap;
-    }
-
-    .token-change {
-        font-size: 13px;
-        font-weight: 500;
-        display: flex;
-        align-items: center;
-        gap: 3px;
-    }
-
+    .tabs { display: flex; gap: 22px; padding: 0 16px; border-bottom: 1px solid var(--border-color); margin-bottom: 4px; overflow-x: auto; }
+    .tab { padding: 8px 0; font-size: 15px; color: var(--hint-color); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; user-select: none; }
+    .tab.active { color: var(--text-color); border-bottom-color: var(--button-color); font-weight: 600; }
+    .section-label { padding: 14px 16px 6px; font-size: 13px; color: var(--hint-color); display: flex; align-items: center; justify-content: space-between; }
+    .src-badge { font-size: 11px; color: var(--hint-color); background: var(--card-bg-2); border: 1px solid var(--border-color); border-radius: 5px; padding: 1px 7px; }
+    .token-list { display: flex; flex-direction: column; padding: 0 16px; }
+    .token-item { border-bottom: 1px solid var(--border-color); overflow: hidden; }
+    .token-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; cursor: pointer; user-select: none; gap: 8px; }
+    .token-info { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+    .token-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; color: #fff; flex-shrink: 0; overflow: hidden; }
+    .token-icon img { width: 100%; height: 100%; object-fit: cover; }
+    .token-names { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .token-name { font-weight: 500; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .token-meta { display: flex; align-items: center; gap: 6px; }
+    .token-ticker { font-size: 13px; color: var(--hint-color); }
+    .apr-badge { font-size: 11px; color: var(--hint-color); background: var(--card-bg-2); border: 1px solid var(--border-color); border-radius: 5px; padding: 1px 6px; white-space: nowrap; }
+    .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); display: inline-block; margin-left: 2px; box-shadow: 0 0 6px var(--green); }
+    .token-price-info { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+    .token-price { font-weight: 600; font-size: 15px; white-space: nowrap; }
+    .token-change { font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 3px; }
     .positive { color: var(--green); }
     .negative { color: var(--red); }
+    .chevron { width: 7px; height: 7px; border-right: 2px solid var(--hint-color); border-bottom: 2px solid var(--hint-color); transform: rotate(45deg); transition: transform 0.25s ease, border-color 0.25s ease; flex-shrink: 0; margin-left: 2px; }
+    .token-item.expanded .chevron { transform: rotate(-135deg); border-color: var(--button-color); }
+    .chart-wrapper { max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.4s ease, opacity 0.35s ease; }
+    .token-item.expanded .chart-wrapper { max-height: 520px; opacity: 1; padding-bottom: 16px; }
+    .expand-row { display: flex; gap: 10px; align-items: stretch; }
+    .chart-col { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .chart-container { height: 150px; position: relative; }
+    .chart-loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--hint-color); }
+    .date-range { display: flex; justify-content: space-between; font-size: 10px; color: var(--hint-color); padding: 4px 2px 10px; }
+    .timeframe-pills { display: flex; gap: 6px; margin-top: auto; }
+    .pill { flex: 1; padding: 6px 0; border-radius: 6px; border: none; background-color: var(--card-bg); color: var(--hint-color); font-size: 11px; font-weight: 600; cursor: pointer; transition: background-color 0.2s, color 0.2s; }
+    .pill.active { background-color: var(--button-color); color: #fff; }
+    .stale-note { font-size: 9.5px; color: #ffb020; padding: 2px 2px 0; display: none; }
+    .stale-note.show { display: block; }
 
-    /* Стрелочка */
-    .chevron {
-        width: 7px;
-        height: 7px;
-        border-right: 2px solid var(--hint-color);
-        border-bottom: 2px solid var(--hint-color);
-        transform: rotate(45deg);
-        transition: transform 0.25s ease, border-color 0.25s ease;
-        flex-shrink: 0;
-        margin-left: 2px;
-    }
-
-    .token-item.expanded .chevron {
-        transform: rotate(-135deg);
-        border-color: var(--button-color);
-    }
-
-    /* Контейнер раскрытия */
-    .chart-wrapper {
-        max-height: 0;
-        opacity: 0;
-        overflow: hidden;
-        transition: max-height 0.4s ease, opacity 0.35s ease;
-    }
-
-    .token-item.expanded .chart-wrapper {
-        max-height: 460px;
-        opacity: 1;
-        padding-bottom: 16px;
-    }
-
-    /* Двухколоночный ряд: график + карточка активности */
-    .expand-row {
-        display: flex;
-        gap: 10px;
-        align-items: stretch;
-    }
-
-    .chart-col {
-        flex: 1;
-        min-width: 0;
-        display: flex;
-        flex-direction: column;
-    }
-
-    /* Детальный график */
-    .chart-container {
-        height: 150px;
-        position: relative;
-    }
-
-    .chart-loading {
-        position: absolute;
-        inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 12px;
-        color: var(--hint-color);
-    }
-
-    .date-range {
-        display: flex;
-        justify-content: space-between;
-        font-size: 10px;
-        color: var(--hint-color);
-        padding: 4px 2px 10px;
-    }
-
-    /* Таймфреймы */
-    .timeframe-pills {
-        display: flex;
-        gap: 6px;
-        margin-top: auto;
-    }
-
-    .pill {
-        flex: 1;
-        padding: 6px 0;
-        border-radius: 6px;
-        border: none;
-        background-color: var(--card-bg);
-        color: var(--hint-color);
-        font-size: 11px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: background-color 0.2s, color 0.2s;
-    }
-
-    .pill.active {
-        background-color: var(--button-color);
-        color: #fff;
-    }
-
-    /* Карточка "Торговая активность" */
-    .ur-card {
-        width: 118px;
-        flex-shrink: 0;
-        background-color: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 10px;
-        padding: 10px;
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-    }
-
-    .ur-top {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 4px;
-    }
-
-    .ur-badge {
-        background-color: var(--button-color);
-        color: #fff;
-        font-size: 11px;
-        font-weight: 700;
-        padding: 2px 7px;
-        border-radius: 5px;
-        line-height: 1.4;
-    }
-
-    .ur-percent {
-        font-size: 11px;
-        font-weight: 600;
-        white-space: nowrap;
-    }
-
-    .ur-value {
-        font-size: 22px;
-        font-weight: 700;
-        line-height: 1.1;
-    }
-
-    .ur-caption {
-        font-size: 9.5px;
-        color: var(--hint-color);
-        line-height: 1.3;
-    }
-
-    .ur-volume-label {
-        font-size: 10px;
-        color: var(--hint-color);
-        margin-top: 2px;
-    }
-
-    .ur-bar {
-        display: flex;
-        width: 100%;
-        height: 5px;
-        border-radius: 3px;
-        overflow: hidden;
-        background: var(--border-color);
-    }
-
+    /* ur-card */
+    .ur-card { width: 132px; flex-shrink: 0; background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 9px; display: flex; flex-direction: column; gap: 5px; }
+    .ur-top { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
+    .ur-badge { background-color: var(--button-color); color: #fff; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 5px; line-height: 1.4; }
+    .ur-input { width: 62px; background: var(--card-bg-2); border: 1px solid var(--border-color); border-radius: 5px; color: var(--text-color); font-size: 11px; padding: 3px 5px; outline: none; text-align: right; }
+    .ur-input:focus { border-color: var(--button-color); }
+    .ur-value { font-size: 19px; font-weight: 700; line-height: 1.1; }
+    .ur-caption { font-size: 9px; color: var(--hint-color); line-height: 1.3; }
+    .ur-pl { font-size: 11px; font-weight: 700; }
+    .ur-sep { height: 1px; background: var(--border-color); margin: 2px 0; }
+    .ur-volume-label { font-size: 9.5px; color: var(--hint-color); }
+    .ur-bar { display: flex; width: 100%; height: 5px; border-radius: 3px; overflow: hidden; background: var(--border-color); }
     .ur-bar .buy { background-color: var(--green); height: 100%; }
     .ur-bar .sell { background-color: var(--red); height: 100%; }
-
-    .ur-bar-labels {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-        font-size: 8.5px;
-        line-height: 1.3;
-    }
-
+    .ur-bar-labels { display: flex; flex-direction: column; gap: 1px; font-size: 8.5px; line-height: 1.3; }
     .ur-bar-labels .buy-label { color: var(--green); }
     .ur-bar-labels .sell-label { color: var(--red); }
 
-    /* Нижняя навигация */
-    .bottom-nav {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        background-color: var(--card-bg);
-        display: flex;
-        justify-content: space-around;
-        padding: 10px 0 calc(12px + env(safe-area-inset-bottom, 0px));
-        border-top: 1px solid var(--border-color);
-        z-index: 100;
-    }
+    /* bottom nav */
+    .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background-color: var(--card-bg); display: flex; justify-content: space-around; padding: 10px 0 calc(12px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--border-color); z-index: 100; }
+    .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11px; color: var(--hint-color); cursor: pointer; flex: 1; user-select: none; }
+    .nav-item.active { color: var(--button-color); }
+    .nav-icon { font-size: 19px; }
 
-    .nav-item {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 4px;
-        font-size: 11px;
-        color: var(--hint-color);
-        cursor: pointer;
-        flex: 1;
-    }
-
-    .nav-item.active {
-        color: var(--button-color);
-    }
-
-    .nav-icon {
-        font-size: 19px;
-    }
-
-    /* ===== Настройки (bottom sheet) ===== */
-    .sheet-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.55);
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.25s ease;
-        z-index: 200;
-    }
-
-    .sheet-overlay.open {
-        opacity: 1;
-        pointer-events: auto;
-    }
-
-    .sheet {
-        position: fixed;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: var(--card-bg);
-        border-radius: 18px 18px 0 0;
-        padding: 10px 16px calc(20px + env(safe-area-inset-bottom, 0px));
-        transform: translateY(105%);
-        transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-        z-index: 201;
-        max-height: 88vh;
-        overflow-y: auto;
-    }
-
-    .sheet.open {
-        transform: translateY(0);
-    }
-
-    .sheet-handle {
-        width: 40px;
-        height: 4px;
-        border-radius: 2px;
-        background: var(--border-color);
-        margin: 4px auto 14px;
-    }
-
-    .sheet-title {
-        font-size: 17px;
-        font-weight: 700;
-        margin-bottom: 4px;
-    }
-
-    .sheet-sub {
-        font-size: 12px;
-        color: var(--hint-color);
-        margin-bottom: 16px;
-    }
-
-    .sheet-section {
-        margin-bottom: 18px;
-    }
-
-    .sheet-section-title {
-        font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: 0.4px;
-        color: var(--hint-color);
-        margin-bottom: 8px;
-    }
-
-    .opt-list {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .opt {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 12px 14px;
-        border-radius: 12px;
-        background: var(--card-bg-2);
-        border: 1px solid var(--border-color);
-        cursor: pointer;
-        transition: border-color 0.2s, background 0.2s;
-    }
-
-    .opt.selected {
-        border-color: var(--button-color);
-        background: rgba(46, 166, 255, 0.1);
-    }
-
-    .opt-radio {
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        border: 2px solid var(--hint-color);
-        flex-shrink: 0;
-        position: relative;
-        transition: border-color 0.2s;
-    }
-
-    .opt.selected .opt-radio {
-        border-color: var(--button-color);
-    }
-
-    .opt.selected .opt-radio::after {
-        content: '';
-        position: absolute;
-        inset: 3px;
-        border-radius: 50%;
-        background: var(--button-color);
-    }
-
-    .opt-text {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-        min-width: 0;
-    }
-
-    .opt-label {
-        font-size: 15px;
-        font-weight: 600;
-    }
-
-    .opt-note {
-        font-size: 12px;
-        color: var(--hint-color);
-    }
-
-    .sheet-apply {
-        width: 100%;
-        padding: 14px;
-        border: none;
-        border-radius: 12px;
-        background: var(--button-color);
-        color: #fff;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        margin-top: 4px;
-    }
-
+    /* sheet */
+    .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); opacity: 0; pointer-events: none; transition: opacity 0.25s ease; z-index: 200; }
+    .sheet-overlay.open { opacity: 1; pointer-events: auto; }
+    .sheet { position: fixed; left: 0; right: 0; bottom: 0; background: var(--card-bg); border-radius: 18px 18px 0 0; padding: 10px 16px calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateY(105%); transition: transform 0.3s cubic-bezier(0.22,1,0.36,1); z-index: 201; max-height: 88vh; overflow-y: auto; }
+    .sheet.open { transform: translateY(0); }
+    .sheet-handle { width: 40px; height: 4px; border-radius: 2px; background: var(--border-color); margin: 4px auto 14px; }
+    .sheet-title { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+    .sheet-sub { font-size: 12px; color: var(--hint-color); margin-bottom: 16px; }
+    .sheet-section { margin-bottom: 18px; }
+    .sheet-section-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px; color: var(--hint-color); margin-bottom: 8px; }
+    .opt-list { display: flex; flex-direction: column; gap: 8px; }
+    .opt { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; background: var(--card-bg-2); border: 1px solid var(--border-color); cursor: pointer; transition: border-color 0.2s, background 0.2s; }
+    .opt.selected { border-color: var(--button-color); background: rgba(46,166,255,0.1); }
+    .opt-radio { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--hint-color); flex-shrink: 0; position: relative; transition: border-color 0.2s; }
+    .opt.selected .opt-radio { border-color: var(--button-color); }
+    .opt.selected .opt-radio::after { content: ''; position: absolute; inset: 3px; border-radius: 50%; background: var(--button-color); }
+    .opt-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .opt-label { font-size: 15px; font-weight: 600; }
+    .opt-note { font-size: 12px; color: var(--hint-color); }
+    .sheet-note { font-size: 11.5px; color: var(--hint-color); line-height: 1.45; background: var(--card-bg-2); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 12px; margin-bottom: 16px; }
+    .sheet-apply { width: 100%; padding: 14px; border: none; border-radius: 12px; background: var(--button-color); color: #fff; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 4px; }
     .sheet-apply:active { opacity: 0.85; }
 
-    .toast {
-        position: fixed;
-        left: 50%;
-        bottom: calc(96px + env(safe-area-inset-bottom, 0px));
-        transform: translateX(-50%) translateY(20px);
-        background: rgba(0, 0, 0, 0.85);
-        color: #fff;
-        font-size: 13px;
-        padding: 10px 16px;
-        border-radius: 10px;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.25s, transform 0.25s;
-        z-index: 300;
-        max-width: 90%;
-        text-align: center;
-    }
-
-    .toast.show {
-        opacity: 1;
-        transform: translateX(-50%) translateY(0);
-    }
-
-    .spinner {
-        width: 14px;
-        height: 14px;
-        border: 2px solid var(--border-color);
-        border-top-color: var(--button-color);
-        border-radius: 50%;
-        animation: spin 0.7s linear infinite;
-        display: inline-block;
-    }
-
+    .toast { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%) translateY(20px); background: rgba(0,0,0,0.88); color: #fff; font-size: 13px; padding: 10px 16px; border-radius: 10px; opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.25s; z-index: 300; max-width: 90%; text-align: center; }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .spinner { width: 14px; height: 14px; border: 2px solid var(--border-color); border-top-color: var(--button-color); border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* pages */
+    .page { display: none; padding: 4px 16px 20px; }
+    .page.active { display: block; }
+    .page-title { font-size: 20px; font-weight: 700; margin: 6px 0 4px; }
+    .page-sub { font-size: 13px; color: var(--hint-color); margin-bottom: 16px; }
+    .card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
+    .card h3 { margin: 0 0 8px; font-size: 15px; }
+    .card p { margin: 0 0 8px; font-size: 13.5px; line-height: 1.5; color: var(--text-color); }
+    .card p:last-child { margin-bottom: 0; }
+    .card .muted { color: var(--hint-color); font-size: 12.5px; }
+    code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--card-bg-2); border: 1px solid var(--border-color); border-radius: 5px; padding: 1px 5px; font-size: 12px; }
+    .db-field { width: 100%; min-height: 74px; background: var(--card-bg-2); border: 1px solid var(--border-color); border-radius: 10px; color: var(--text-color); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; padding: 10px; outline: none; resize: vertical; line-height: 1.5; }
+    .db-field:focus { border-color: var(--button-color); }
+    .btn-row { display: flex; gap: 8px; margin-top: 10px; }
+    .btn { flex: 1; padding: 11px; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .btn-primary { background: var(--button-color); color: #fff; }
+    .btn-ghost { background: var(--card-bg-2); color: var(--text-color); border: 1px solid var(--border-color); }
+    .btn:active { opacity: 0.85; }
+    .kv { display: flex; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border-color); font-size: 13.5px; }
+    .kv:last-child { border-bottom: none; }
+    .kv .k { color: var(--hint-color); }
+    .kv .v { font-weight: 600; text-align: right; }
+    .hold-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border-color); }
+    .hold-row:last-child { border-bottom: none; }
+    .hold-icon { width: 30px; height: 30px; border-radius: 50%; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #fff; }
+    .hold-icon img { width: 100%; height: 100%; object-fit: cover; }
+    .hold-name { flex: 1; min-width: 0; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .hold-val { font-size: 13.5px; font-weight: 600; white-space: nowrap; }
+    .empty { text-align: center; color: var(--hint-color); font-size: 13.5px; padding: 20px 0; }
+
+    /* modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 400; padding: 20px; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 16px; width: 100%; max-width: 420px; max-height: 76vh; overflow-y: auto; }
+    .modal h3 { margin: 0 0 10px; font-size: 16px; }
+    .modal .log-line { font-size: 12.5px; line-height: 1.5; padding: 6px 0; border-bottom: 1px solid var(--border-color); color: var(--text-color); }
+    .modal .log-line:last-child { border-bottom: none; }
+    .modal .log-line .tag { color: var(--hint-color); }
+    .modal-close { width: 100%; margin-top: 12px; padding: 11px; border: none; border-radius: 10px; background: var(--button-color); color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; }
 </style>
 <script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
 </head>
@@ -643,7 +172,7 @@
 <div class="header">
     <div class="header-left">
         <span class="icon-btn back-arrow">←</span>
-        <span>Кошёлёк</span>
+        <span>Кошелёк</span>
         <span class="icon-btn" style="font-size:12px;">▾</span>
     </div>
     <div class="header-right">
@@ -657,44 +186,105 @@
     <input type="text" id="searchInput" placeholder="Поиск по тикеру или названию">
 </div>
 
-<div class="tabs">
+<div class="tabs" id="tabsBar">
     <div class="tab active" data-filter="all">Все</div>
     <div class="tab" data-filter="tokens">Токены</div>
     <div class="tab" data-filter="stocks">Акции</div>
     <div class="tab" data-filter="funds">Фонды</div>
 </div>
 
-<div class="section-label">
-    <span>Активы в токенах</span>
-    <span class="src-badge" id="srcBadge">—</span>
-</div>
-
-<div class="token-list" id="tokenList">
-    <!-- Элементы списка генерируются через JS -->
-</div>
-
-<!-- Нижняя навигация -->
-<div class="bottom-nav">
-    <div class="nav-item">
-        <span class="nav-icon">🏦</span>
-        <span>Резерв</span>
+<!-- ===== ГЛАВНЫЙ ЭКРАН ===== -->
+<div id="view-main">
+    <div class="section-label">
+        <span id="sectionLabel">Активы в токенах</span>
+        <span class="src-badge" id="srcBadge">—</span>
     </div>
-    <div class="nav-item active">
+    <div class="token-list" id="tokenList"></div>
+</div>
+
+<!-- ===== readme ===== -->
+<div class="page" id="view-readme">
+    <div class="page-title">readme</div>
+    <div class="page-sub">Инструкция и хранение данных</div>
+
+    <div class="card">
+        <h3>1. Поле ur</h3>
+        <p>В поле <b>ur</b> введите количество ваших токенов (ur — your (monets)). Приложение посчитает стоимость, отметит точку покупки на графике и покажет прибыль или убыток.</p>
+        <p class="muted">На графике: серая точка — момент покупки, тонкая полоска — уровень покупки. Всё, что выше полоски — зелёное, ниже — красное.</p>
+    </div>
+
+    <div class="card">
+        <h3>2. Источник данных (API)</h3>
+        <p>В меню (⋮) выберите источник (API). Учтите, что есть лимиты на обновление информации — около 10 запросов в минуту.</p>
+        <p class="muted">В случае если лимит превышен — на графике будет очень плавная линия (это обновление графика, а не актуальный курс).</p>
+    </div>
+
+    <div class="card">
+        <h3>3. Хранение данных</h3>
+        <p>Данные хранятся в виде строки текста — без сервера и базы данных. Формат: <code>0|1`0,27|2`12|3`…</code>, где <code>0,27</code> — количество токена, а <code>| 2</code> — индикатор крипты (| 1 — первый токен (TON), | 2 — второй, что ниже, и т.д.).</p>
+        <textarea class="db-field" id="dbField" spellcheck="false"></textarea>
+        <div class="btn-row">
+            <button class="btn btn-primary" id="copyBtn">copy it</button>
+            <button class="btn btn-ghost" id="applyDbBtn">применить</button>
+        </div>
+        <p class="muted" style="margin-top:8px;">Скопируйте строку перед выходом из бота и сохраните себе в буфер обмена.</p>
+    </div>
+</div>
+
+<!-- ===== Портфель ===== -->
+<div class="page" id="view-portfolio">
+    <div class="page-title">Портфель</div>
+    <div class="page-sub">Ваши активы и итог</div>
+    <div class="card" id="portfolioSummary"></div>
+    <div class="card" id="portfolioHoldings"></div>
+</div>
+
+<!-- ===== Профиль ===== -->
+<div class="page" id="view-profile">
+    <div class="page-title">Профиль</div>
+    <div class="page-sub">Аккаунт и статистика</div>
+    <div class="card" id="profileCard"></div>
+    <div class="card" id="profileStats"></div>
+    <div class="card">
+        <h3>Данные</h3>
+        <div class="btn-row">
+            <button class="btn btn-ghost" id="clearDataBtn">Сбросить мои данные</button>
+        </div>
+        <p class="muted" style="margin-top:8px;">Сбросит введённые количества токенов и точки покупки.</p>
+    </div>
+</div>
+
+<!-- ===== Нижняя навигация ===== -->
+<div class="bottom-nav">
+    <div class="nav-item" data-view="readme">
+        <span class="nav-icon">🏦</span>
+        <span>readme</span>
+    </div>
+    <div class="nav-item active" data-view="main">
         <span class="nav-icon">%</span>
         <span>Доход</span>
     </div>
-    <div class="nav-item">
+    <div class="nav-item" data-view="portfolio">
         <span class="nav-icon">💼</span>
         <span>Портфель</span>
     </div>
+    <div class="nav-item" data-view="profile">
+        <span class="nav-icon">👤</span>
+        <span>Профиль</span>
+    </div>
 </div>
 
-<!-- Настройки: выбор API-поставщика -->
+<!-- ===== Настройки ===== -->
 <div class="sheet-overlay" id="sheetOverlay"></div>
 <div class="sheet" id="settingsSheet">
     <div class="sheet-handle"></div>
     <div class="sheet-title">Настройки данных</div>
     <div class="sheet-sub">Выберите API-поставщиков курса и цен</div>
+
+    <div class="sheet-note">
+        Учтите: у источников есть лимиты на обновление информации — около 10 запросов в минуту.
+        Если лимит превышен, на графике будет очень плавная линия (это обновление графика, а не актуальный курс).
+    </div>
 
     <div class="sheet-section">
         <div class="sheet-section-title">Курс USD → ₽</div>
@@ -711,17 +301,23 @@
 
 <div class="toast" id="toast"></div>
 
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+        <h3 id="modalTitle">Лог</h3>
+        <div id="modalBody"></div>
+        <button class="modal-close" id="modalClose">Закрыть</button>
+    </div>
+</div>
+
 <script>
     /* ============================================================
-       Telegram WebApp init (безопасно и вне Telegram)
+       Telegram WebApp init
        ============================================================ */
     const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
-    if (tg) {
-        try { tg.ready(); tg.expand(); } catch (e) {}
-    }
+    if (tg) { try { tg.ready(); tg.expand(); } catch (e) {} }
 
     /* ============================================================
-       Прокси (Vercel serverless) — обходит CORS и гео-ограничения
+       Прокси (Vercel serverless)
        ============================================================ */
     const PROXY = '/api/proxy?url=';
 
@@ -739,86 +335,123 @@
     }
 
     /* ============================================================
+       ЛОГ ОШИБОК (для долгого нажатия на «Портфель»)
+       ============================================================ */
+    const failLog = [];
+    function logFail(tag, msg) {
+        failLog.push({ t: Date.now(), tag, msg });
+        if (failLog.length > 60) failLog.shift();
+    }
+    // Проверка шрифтов
+    (function checkFonts() {
+        try {
+            if (!document.fonts || !document.fonts.check) { logFail('шрифт', 'Font API недоступен'); return; }
+            const ok = document.fonts.check('16px -apple-system') || document.fonts.check('16px sans-serif');
+            if (!ok) logFail('шрифт', 'системный шрифт не найден');
+        } catch (e) { logFail('шрифт', 'ошибка проверки шрифтов'); }
+    })();
+
+    /* ============================================================
        ДАННЫЕ ТОКЕНОВ
-       real: true — тянем реальные данные; иначе — демо-данные
-       Поля cgId/kraken/okx/kucoin/coinbase/coinlore — символы
-       для соответствующего поставщика.
        ============================================================ */
     const tokens = [
-        { id: 'gram', name: 'Gram (бывш. Toncoin)', ticker: 'GRAM', price: 122.62, change: 1.14, apr: 12.81, icon: '💎', iconBg: '#2ea6ff', real: true,
-          cgId: 'the-open-network', kraken: 'TONUSD', okx: null, kucoin: null, coinbase: 'TON-USD', coinlore: '54683' },
-        { id: 'usdt', name: 'USDT', ticker: 'USDT', price: 83.99, change: -0.14, apr: 4.63, icon: '₮', iconBg: '#26a17b', real: true,
-          cgId: 'tether', kraken: 'USDTUSD', okx: null, kucoin: 'USDT-USDC', coinbase: 'USDT-USD', coinlore: '518' },
-        { id: 'tonstakers', name: 'Tonstakers TON', ticker: 'tsTON', price: 142.22, change: 1.19, icon: '💧', iconBg: '#0098ea', real: false },
-        { id: 'utya', name: 'Utya', ticker: 'UTYA', price: 2.59, change: 6.09, icon: '🦆', iconBg: '#ffcc00', real: false },
-        { id: 'atf', name: 'AI Trading Forex', ticker: 'ATF', price: 0.05, change: -3.32, icon: '🤖', iconBg: '#333', real: false },
-        { id: 'redo', name: 'Resistance Dog', ticker: 'REDO', price: 5.00, change: 5.01, icon: '🐕', iconBg: '#ff4500', real: false },
-        { id: 'cherry', name: 'Hot Cherry', ticker: 'CHERRY', price: 0.01, change: -1.78, icon: '🍒', iconBg: '#ff69b4', real: false },
-        { id: 'dogs', name: 'Dogs', ticker: 'DOGS', price: 0.01, change: 1.15, icon: '🐶', iconBg: '#8b4513', real: true,
-          cgId: 'dogs-2', kraken: 'DOGSUSD', okx: 'DOGS-USDT', kucoin: 'DOGS-USDT', coinbase: null, coinlore: '147569' }
+        { id:'gram', name:'Gram (бывш. Toncoin)', ticker:'GRAM', cgId:'the-open-network', iconFile:'the-open-network.png', iconBg:'#2ea6ff', icon:'💎', apr:12.81, real:true, kraken:'TONUSD', coinbase:'TON-USD', coinlore:'54683' },
+        { id:'usdt', name:'USDT', ticker:'USDT', cgId:'tether', iconFile:'tether.png', iconBg:'#26a17b', icon:'₮', apr:4.63, real:true, kraken:'USDTUSD', coinbase:'USDT-USD', coinlore:'518' },
+        { id:'tonstakers', name:'Tonstakers TON', ticker:'tsTON', cgId:'tonstakers', iconFile:'tonstakers.png', iconBg:'#0098ea', icon:'💧', real:true, okx:'TSTON-USDT' },
+        { id:'utya', name:'Utya', ticker:'UTYA', cgId:'utya', iconFile:'utya.jpg', iconBg:'#ffcc00', icon:'🦆', real:true },
+        { id:'redo', name:'Resistance Dog', ticker:'REDO', cgId:'resistance-dog', iconFile:'resistance-dog.png', iconBg:'#ff4500', icon:'🐕', real:true, okx:'REDO-USDT' },
+        { id:'dogs', name:'Dogs', ticker:'DOGS', cgId:'dogs-2', iconFile:'dogs-2.png', iconBg:'#8b4513', icon:'🐶', real:true, kraken:'DOGSUSD', okx:'DOGS-USDT', kucoin:'DOGS-USDT', coinlore:'147569' },
+        { id:'notcoin', name:'Notcoin', ticker:'NOT', cgId:'notcoin', iconFile:'notcoin.jpg', iconBg:'#111', icon:'🪙', real:true, okx:'NOT-USDT', kucoin:'NOT-USDT' },
+        { id:'major', name:'Major', ticker:'MAJOR', cgId:'major', iconFile:'major.png', iconBg:'#6c5ce7', icon:'⭐', real:true, okx:'MAJOR-USDT', kucoin:'MAJOR-USDT' },
+        { id:'ston', name:'STON', ticker:'STON', cgId:'ston-2', iconFile:'ston.jpg', iconBg:'#0098ea', icon:'🔵', real:true, okx:'STON-USDT', kucoin:'STON-USDT' },
+        { id:'bitcoin', name:'Bitcoin', ticker:'BTC', cgId:'bitcoin', iconFile:'bitcoin.png', iconBg:'#f7931a', icon:'₿', real:true, kraken:'XBTUSD', okx:'BTC-USDT', kucoin:'BTC-USDT', coinbase:'BTC-USD' },
+        { id:'ethereum', name:'Ethereum', ticker:'ETH', cgId:'ethereum', iconFile:'ethereum.png', iconBg:'#627eea', icon:'Ξ', real:true, kraken:'ETHUSD', okx:'ETH-USDT', kucoin:'ETH-USDT', coinbase:'ETH-USD' },
+        { id:'catizen', name:'Catizen', ticker:'CATI', cgId:'catizen', iconFile:'catizen.png', iconBg:'#f5a623', icon:'🐱', real:true, okx:'CATI-USDT', kucoin:'CATI-USDT' },
+        { id:'hmstr', name:'Hamster Kombat', ticker:'HMSTR', cgId:'hamster-kombat', iconFile:'hamster-kombat.png', iconBg:'#f7b500', icon:'🐹', real:true, okx:'HMSTR-USDT', kucoin:'HMSTR-USDT' },
+        { id:'usde', name:'Ethena USDe', ticker:'USDe', cgId:'ethena-usde', iconFile:'ethena-usde.png', iconBg:'#111', icon:'$', real:true, okx:'USDE-USDT' },
+        { id:'gemston', name:'GEMSTON', ticker:'GEMSTON', cgId:'gemston', iconFile:'gemston.png', iconBg:'#00b894', icon:'💠', real:true },
+        { id:'evaa', name:'EVAA Protocol', ticker:'EVAA', cgId:'evaa-protocol', iconFile:'evaa-protocol.png', iconBg:'#6c5ce7', icon:'🟣', real:true },
+        { id:'xrocket', name:'xRocket Token', ticker:'XROCK', cgId:'xrocket', iconFile:'xrocket.png', iconBg:'#ff6b00', icon:'🚀', real:true },
+        { id:'hipo', name:'Hipo Staked TON', ticker:'hGRAM', cgId:'hipo-staked-ton', iconFile:'hipo-staked-ton.png', iconBg:'#0098ea', icon:'💧', real:true },
+        { id:'tac', name:'TAC Token', ticker:'TAC', cgId:'tac', iconFile:'tac.jpg', iconBg:'#333', icon:'🔷', real:true },
+        { id:'storm', name:'STORM', ticker:'STMX', cgId:'storm', iconFile:'storm.png', iconBg:'#1e90ff', icon:'⚡', real:true },
+        { id:'pirate', name:'PirateCash', ticker:'PIRATE', cgId:'piratecash', iconFile:'piratecash.png', iconBg:'#333', icon:'🏴‍☠️', real:true },
+        { id:'jetton', name:'JetTon', ticker:'JETTON', cgId:'jetton', iconFile:'jetton.jpg', iconBg:'#0098ea', icon:'✈️', real:true },
+        { id:'tonnel', name:'Tonnel Network', ticker:'TONNEL', cgId:'tonnel-network', iconFile:'tonnel-network.png', iconBg:'#333', icon:'🚇', real:true },
+        { id:'durev', name:'povel durev', ticker:'DUREV', cgId:'povel-durev', iconFile:'povel-durev.png', iconBg:'#333', icon:'🐶', real:true },
+        { id:'plane', name:'Paper Plane', ticker:'PLANE', cgId:'paper-plane', iconFile:'paper-plane.jpg', iconBg:'#2ea6ff', icon:'✈️', real:true },
+        { id:'fish', name:'TON FISH MEMECOIN', ticker:'FISH', cgId:'ton-fish-memecoin', iconFile:'ton-fish-memecoin.jpg', iconBg:'#00b894', icon:'🐟', real:true },
+        { id:'spintria', name:'Spintria', ticker:'SP', cgId:'spintria', iconFile:'spintria.png', iconBg:'#333', icon:'🌀', real:true },
+        { id:'bolt', name:'Huebel Bolt', ticker:'BOLT', cgId:'huebel-bolt', iconFile:'huebel-bolt.png', iconBg:'#333', icon:'🔩', real:true },
+        { id:'xempire', name:'X Empire', ticker:'X', cgId:'x-empire', iconFile:'x-empire.jpg', iconBg:'#111', icon:'✖️', real:true }
+    ];
+
+    // Акции и фонды (демо-данные — реальные котировки требуют отдельного API)
+    const stocks = [
+        { id:'nvda', name:'NVIDIA', ticker:'NVDA', price:19253.63, change:0.89, iconBg:'#76b900', icon:'🟩', kind:'stock' },
+        { id:'tsla', name:'Tesla', ticker:'TSLA', price:31896.72, change:1.07, iconBg:'#e82127', icon:'🚗', kind:'stock' },
+        { id:'mstr', name:'MicroStrategy', ticker:'MSTR', price:14186.09, change:0.05, iconBg:'#f7931a', icon:'📊', kind:'stock' },
+        { id:'googl', name:'Alphabet', ticker:'GOOGL', price:29737.25, change:0.61, iconBg:'#4285f4', icon:'🔎', kind:'stock' },
+        { id:'amzn', name:'Amazon', ticker:'AMZN', price:21511.18, change:-0.04, iconBg:'#ff9900', icon:'📦', kind:'stock' },
+        { id:'aapl', name:'Apple', ticker:'AAPL', price:28710.44, change:0.92, iconBg:'#555', icon:'🍎', kind:'stock' },
+        { id:'coin', name:'Coinbase', ticker:'COIN', price:16899.69, change:2.18, iconBg:'#0052ff', icon:'🔵', kind:'stock' },
+        { id:'hood', name:'Robinhood', ticker:'HOOD', price:10447.53, change:-0.15, iconBg:'#00c805', icon:'🟢', kind:'stock' }
+    ];
+    const funds = [
+        { id:'spyx', name:'SPDR S&P 500', ticker:'SPYX', price:65403.81, change:-0.48, iconBg:'#c8102e', icon:'📈', kind:'fund' },
+        { id:'qqqx', name:'Invesco QQQ', ticker:'QQQX', price:63099.51, change:1.09, iconBg:'#0033a0', icon:'📉', kind:'fund' }
     ];
 
     /* ============================================================
        ПОСТАВЩИКИ КУРСА (USD → RUB)
        ============================================================ */
     const rateProviders = {
-        coingecko: {
-            label: 'CoinGecko',
-            note: 'Курс по USDT/₽',
-            async rate() {
-                const d = await proxyFetch('https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=rub');
-                return d.tether.rub;
-            }
-        },
-        cbr: {
-            label: 'ЦБ РФ',
-            note: 'Официальный курс ЦБ',
-            async rate() {
-                const d = await proxyFetch('https://www.cbr-xml-daily.ru/daily_json.js');
-                return d.Valute.USD.Value;
-            }
-        },
-        erapi: {
-            label: 'ExchangeRate-API',
-            note: 'open.er-api.com',
-            async rate() {
-                const d = await proxyFetch('https://open.er-api.com/v6/latest/USD');
-                return d.rates.RUB;
-            }
-        }
+        coingecko: { label:'CoinGecko', note:'Курс по USDT/₽', async rate() {
+            const d = await proxyFetch('https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=rub');
+            return d.tether.rub;
+        }},
+        cbr: { label:'ЦБ РФ', note:'Официальный курс ЦБ', async rate() {
+            const d = await proxyFetch('https://www.cbr-xml-daily.ru/daily_json.js');
+            return d.Valute.USD.Value;
+        }},
+        erapi: { label:'ExchangeRate-API', note:'open.er-api.com', async rate() {
+            const d = await proxyFetch('https://open.er-api.com/v6/latest/USD');
+            return d.rates.RUB;
+        }}
     };
 
     /* ============================================================
        ПОСТАВЩИКИ ЦЕН
-       prices(list) -> { tokenId: { price, change, currency } }
-       history(token, tf) -> [{ t, v }] | null
+       prices(list) -> { id: {price, change, currency} }
+       history(token, tf) -> [{t,v}] | null
+       trades(token) -> {buy, sell, currency} | null
        ============================================================ */
     const priceProviders = {
         coingecko: {
-            label: 'CoinGecko',
-            note: 'Прямые цены в ₽ · графики',
+            label:'CoinGecko', note:'Прямые цены в ₽ · графики · объём',
             async prices(list) {
                 const real = list.filter(t => t.real && t.cgId);
                 if (!real.length) return {};
                 const ids = real.map(t => t.cgId).join(',');
-                const d = await proxyFetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=rub&include_24hr_change=true`);
+                // /coins/markets — один запрос на все монеты, отдаёт цену, изменение и объём 24ч
+                const d = await proxyFetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=rub&ids=${ids}&price_change_percentage=24h`);
                 const out = {};
-                real.forEach(t => {
-                    const r = d[t.cgId];
-                    if (r && r.rub != null) out[t.id] = { price: r.rub, change: r.rub_24h_change || 0, currency: 'RUB' };
+                (d || []).forEach(r => {
+                    const t = real.find(x => x.cgId === r.id);
+                    if (t && r.current_price != null) out[t.id] = { price: r.current_price, change: r.price_change_percentage_24h || 0, volume: r.total_volume || 0, currency: 'RUB' };
                 });
                 return out;
             },
             async history(t, tf) {
-                const days = { '1D': 1, '7D': 7, '1M': 30, '1Y': 365, 'ALL': 'max' }[tf] || 1;
+                const days = { '1D':1, '7D':7, '1M':30, '1Y':365, 'ALL':'max' }[tf] || 1;
                 const d = await proxyFetch(`https://api.coingecko.com/api/v3/coins/${t.cgId}/market_chart?vs_currency=rub&days=${days}`);
                 if (!d.prices) return null;
                 return d.prices.map(p => ({ t: p[0], v: p[1] }));
-            }
+            },
+            async trades() { return null; } // у CoinGecko нет публичного потока сделок
         },
         kraken: {
-            label: 'Kraken',
-            note: 'USD → ₽ · графики',
+            label:'Kraken', note:'USD → ₽ · графики · сделки',
             async prices(list) {
                 const out = {};
                 for (const t of list) {
@@ -836,16 +469,24 @@
                 return out;
             },
             async history(t, tf) {
-                const interval = { '1D': 60, '7D': 60, '1M': 1440, '1Y': 1440, 'ALL': 10080 }[tf] || 60;
+                const interval = { '1D':60, '7D':60, '1M':1440, '1Y':1440, 'ALL':10080 }[tf] || 60;
                 const d = await proxyFetch(`https://api.kraken.com/0/public/OHLC?pair=${t.kraken}&interval=${interval}`);
                 const key = Object.keys(d.result || {}).find(k => k !== 'last');
                 if (!key) return null;
                 return d.result[key].map(r => ({ t: r[0] * 1000, v: parseFloat(r[4]) }));
+            },
+            async trades(t) {
+                if (!t.kraken) return null;
+                const d = await proxyFetch(`https://api.kraken.com/0/public/Trades?pair=${t.kraken}&count=200`);
+                const key = Object.keys(d.result || {}).find(k => k !== 'last');
+                if (!key) return null;
+                let buy = 0, sell = 0;
+                d.result[key].forEach(r => { const v = parseFloat(r[1]); if (r[3] === 'b') buy += v; else sell += v; });
+                return { buy, sell, currency: 'USD' };
             }
         },
         okx: {
-            label: 'OKX',
-            note: 'USDT → ₽ · графики',
+            label:'OKX', note:'USDT → ₽ · графики · сделки',
             async prices(list) {
                 const out = {};
                 for (const t of list) {
@@ -862,15 +503,22 @@
                 return out;
             },
             async history(t, tf) {
-                const bar = { '1D': '1H', '7D': '4H', '1M': '1D', '1Y': '1D', 'ALL': '1W' }[tf] || '1H';
+                const bar = { '1D':'1H', '7D':'4H', '1M':'1D', '1Y':'1D', 'ALL':'1W' }[tf] || '1H';
                 const d = await proxyFetch(`https://www.okx.com/api/v5/market/candles?instId=${t.okx}&bar=${bar}&limit=100`);
                 if (!d.data) return null;
                 return d.data.map(r => ({ t: parseInt(r[0]), v: parseFloat(r[4]) })).reverse();
+            },
+            async trades(t) {
+                if (!t.okx) return null;
+                const d = await proxyFetch(`https://www.okx.com/api/v5/market/trades?instId=${t.okx}&limit=100`);
+                if (!d.data) return null;
+                let buy = 0, sell = 0;
+                d.data.forEach(r => { const v = parseFloat(r.sz); if (r.side === 'buy') buy += v; else sell += v; });
+                return { buy, sell, currency: 'USD' };
             }
         },
         kucoin: {
-            label: 'KuCoin',
-            note: 'USDT → ₽ · графики',
+            label:'KuCoin', note:'USDT → ₽ · графики · сделки',
             async prices(list) {
                 const out = {};
                 for (const t of list) {
@@ -885,15 +533,22 @@
                 return out;
             },
             async history(t, tf) {
-                const type = { '1D': '1hour', '7D': '4hour', '1M': '1day', '1Y': '1day', 'ALL': '1week' }[tf] || '1hour';
+                const type = { '1D':'1hour', '7D':'4hour', '1M':'1day', '1Y':'1day', 'ALL':'1week' }[tf] || '1hour';
                 const d = await proxyFetch(`https://api.kucoin.com/api/v1/market/candles?type=${type}&symbol=${t.kucoin}`);
                 if (!d.data) return null;
                 return d.data.map(r => ({ t: parseInt(r[0]) * 1000, v: parseFloat(r[2]) })).reverse();
+            },
+            async trades(t) {
+                if (!t.kucoin) return null;
+                const d = await proxyFetch(`https://api.kucoin.com/api/v1/market/histories?symbol=${t.kucoin}`);
+                if (!d.data) return null;
+                let buy = 0, sell = 0;
+                d.data.forEach(r => { const v = parseFloat(r.size); if (r.side === 'buy') buy += v; else sell += v; });
+                return { buy, sell, currency: 'USD' };
             }
         },
         coinbase: {
-            label: 'Coinbase',
-            note: 'USD → ₽ · графики',
+            label:'Coinbase', note:'USD → ₽ · графики · сделки',
             async prices(list) {
                 const out = {};
                 for (const t of list) {
@@ -908,15 +563,22 @@
                 return out;
             },
             async history(t, tf) {
-                const gran = { '1D': 3600, '7D': 21600, '1M': 86400, '1Y': 86400, 'ALL': 86400 }[tf] || 3600;
+                const gran = { '1D':3600, '7D':21600, '1M':86400, '1Y':86400, 'ALL':86400 }[tf] || 3600;
                 const d = await proxyFetch(`https://api.exchange.coinbase.com/products/${t.coinbase}/candles?granularity=${gran}`);
                 if (!Array.isArray(d)) return null;
                 return d.map(r => ({ t: r[0] * 1000, v: r[4] })).reverse();
+            },
+            async trades(t) {
+                if (!t.coinbase) return null;
+                const d = await proxyFetch(`https://api.exchange.coinbase.com/products/${t.coinbase}/trades?limit=100`);
+                if (!Array.isArray(d)) return null;
+                let buy = 0, sell = 0;
+                d.forEach(r => { const v = parseFloat(r.size); if (r.side === 'buy') buy += v; else sell += v; });
+                return { buy, sell, currency: 'USD' };
             }
         },
         coinlore: {
-            label: 'CoinLore',
-            note: 'USD → ₽ · без графиков',
+            label:'CoinLore', note:'USD → ₽ · без графиков',
             async prices(list) {
                 const real = list.filter(t => t.real && t.coinlore);
                 if (!real.length) return {};
@@ -929,7 +591,8 @@
                 });
                 return out;
             },
-            async history() { return null; } // нет бесплатной истории → демо-график
+            async history() { return null; },
+            async trades() { return null; }
         }
     };
 
@@ -941,13 +604,34 @@
         rateProvider: localStorage.getItem('rateProvider') || 'coingecko',
         usdRub: null,
         filter: 'all',
-        query: ''
+        query: '',
+        view: 'main'
     };
     if (!priceProviders[state.priceProvider]) state.priceProvider = 'coingecko';
     if (!rateProviders[state.rateProvider]) state.rateProvider = 'coingecko';
 
     const tokenListEl = document.getElementById('tokenList');
     const charts = {};
+    const blocked = []; // монеты, которые не удалось загрузить из-за лимитов API
+
+    /* ============================================================
+       ХРАНИЛИЩЕ КОЛИЧЕСТВ И ТОЧЕК ПОКУПКИ (localStorage, без БД)
+       ============================================================ */
+    function getQty(id) {
+        const v = parseFloat(localStorage.getItem('qty_' + id));
+        return isNaN(v) ? 0 : v;
+    }
+    function setQty(id, v) {
+        if (v > 0) localStorage.setItem('qty_' + id, String(v));
+        else localStorage.removeItem('qty_' + id);
+    }
+    function getEntry(id) {
+        try { return JSON.parse(localStorage.getItem('entry_' + id)); } catch (e) { return null; }
+    }
+    function setEntry(id, entry) {
+        if (entry) localStorage.setItem('entry_' + id, JSON.stringify(entry));
+        else localStorage.removeItem('entry_' + id);
+    }
 
     /* ============================================================
        ФОРМАТИРОВАНИЕ
@@ -955,16 +639,25 @@
     function formatRub(v) {
         if (v == null || isNaN(v)) return '—';
         let d = 2;
-        if (v < 0.01) d = 6;
-        else if (v < 1) d = 4;
+        if (v < 0.01) d = 6; else if (v < 1) d = 4;
         return v.toLocaleString('ru-RU', { minimumFractionDigits: d, maximumFractionDigits: d }) + ' ₽';
     }
-    function formatPercent(v) {
-        return (v > 0 ? '+' : '') + v.toFixed(2) + '%';
+    function formatPercent(v) { return (v > 0 ? '+' : '') + v.toFixed(2) + '%'; }
+    function formatNum(v) {
+        if (v == null || isNaN(v)) return '—';
+        if (v >= 1e9) return (v / 1e9).toFixed(2) + 'B';
+        if (v >= 1e6) return (v / 1e6).toFixed(2) + 'M';
+        if (v >= 1e3) return (v / 1e3).toFixed(2) + 'K';
+        if (v >= 1) return v.toFixed(2);
+        return v.toFixed(4);
+    }
+    function fmtTime(ts) {
+        const d = new Date(ts);
+        return d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
     }
 
     /* ============================================================
-       КУРС USD → RUB (с кэшем)
+       КУРС USD → RUB
        ============================================================ */
     async function getUsdRub(force) {
         if (state.usdRub && !force) return state.usdRub;
@@ -978,23 +671,56 @@
     /* ============================================================
        ЗАГРУЗКА ЦЕН
        ============================================================ */
-    async function loadPrices() {
+    function applyPrices(raw, used, rate) {
+        blocked.length = 0;
+        tokens.forEach(t => {
+            const r = raw[t.id];
+            if (!r) { t.live = false; if (t.real) blocked.push(t); return; }
+            let p = r.price;
+            if (r.currency === 'USD') { if (!rate) { t.live = false; blocked.push(t); return; } p *= rate; }
+            t.price = p; t.change = r.change; t.live = true;
+            if (r.volume != null) t.volume = r.volume;
+        });
+        const badge = document.getElementById('srcBadge');
+        const fallback = used !== state.priceProvider ? ' (резерв)' : '';
+        badge.textContent = priceProviders[used].label + fallback + (rate ? ' · ' + rate.toFixed(2) + ' ₽' : '');
+        renderTokenList();
+        if (state.view === 'portfolio') renderPortfolio();
+    }
+
+    async function loadPrices(force) {
         const badge = document.getElementById('srcBadge');
         badge.innerHTML = '<span class="spinner"></span>';
+        blocked.length = 0;
 
-        // Порядок: выбранный поставщик, затем остальные как резерв
+        // кэш на 45 секунд — снижает риск превышения лимита API
+        if (!force) {
+            try {
+                const c = JSON.parse(localStorage.getItem('priceCache') || 'null');
+                if (c && c.provider === state.priceProvider && Date.now() - c.t < 45000) {
+                    if (c.rate) state.usdRub = c.rate;
+                    applyPrices(c.raw, c.used, c.rate);
+                    return;
+                }
+            } catch (e) {}
+        }
+
+        // Объединяем данные нескольких источников: если основной отдал не всё
+        // (например, превышен лимит), добираем недостающие монеты у резервных.
         const order = [state.priceProvider, ...Object.keys(priceProviders).filter(p => p !== state.priceProvider)];
-
-        let raw = null, used = null, lastErr = null;
+        const raw = {};
+        const usedBy = {};
+        let lastErr = null;
+        const realCount = tokens.filter(t => t.real).length;
         for (const pid of order) {
             try {
                 const r = await priceProviders[pid].prices(tokens);
-                if (r && Object.keys(r).length) { raw = r; used = pid; break; }
-            } catch (e) { lastErr = e; }
+                if (r) Object.keys(r).forEach(id => { if (!(id in raw)) { raw[id] = r[id]; usedBy[id] = pid; } });
+            } catch (e) { lastErr = e; logFail('API', pid + ': ' + e.message); }
+            if (Object.keys(raw).length >= realCount) break;
         }
 
-        if (!raw) {
-            console.error('loadPrices', lastErr);
+        if (!Object.keys(raw).length) {
             badge.textContent = 'ошибка';
             showToast('Не удалось загрузить цены: ' + (lastErr ? lastErr.message : 'нет данных'));
             renderTokenList();
@@ -1003,55 +729,32 @@
 
         const needsRate = Object.values(raw).some(r => r.currency === 'USD');
         let rate = null;
-        if (needsRate) {
-            try { rate = await getUsdRub(true); } catch (e) { rate = null; }
-        }
+        if (needsRate) { try { rate = await getUsdRub(true); } catch (e) { rate = null; logFail('курс', e.message); } }
 
-        tokens.forEach(t => {
-            const r = raw[t.id];
-            if (!r) { t.live = false; return; }
-            let p = r.price;
-            if (r.currency === 'USD') {
-                if (!rate) { t.live = false; return; }
-                p *= rate;
-            }
-            t.price = p;
-            t.change = r.change;
-            t.live = true;
-        });
-
-        const fallback = used !== state.priceProvider ? ' (резерв)' : '';
-        badge.textContent = priceProviders[used].label + fallback + (rate ? ' · ' + rate.toFixed(2) + ' ₽' : '');
-        renderTokenList();
+        const used = usedBy[state.priceProvider] || Object.values(usedBy)[0] || state.priceProvider;
+        try { localStorage.setItem('priceCache', JSON.stringify({ t: Date.now(), provider: state.priceProvider, raw, used, rate })); } catch (e) {}
+        applyPrices(raw, used, rate);
     }
 
     /* ============================================================
-       ДЕМО-СЕРИЯ ДЛЯ ГРАФИКА
+       ЗАГРУЗКА СДЕЛОК (buy/sell) — реальные данные
        ============================================================ */
-    function generateMockSeries(basePrice, tf) {
-        const cfg = {
-            '1D': { n: 96, vol: 0.004, span: 24 * 3600 * 1000 },
-            '7D': { n: 84, vol: 0.009, span: 7 * 24 * 3600 * 1000 },
-            '1M': { n: 60, vol: 0.016, span: 30 * 24 * 3600 * 1000 },
-            '1Y': { n: 60, vol: 0.026, span: 365 * 24 * 3600 * 1000 },
-            'ALL': { n: 80, vol: 0.04, span: 3 * 365 * 24 * 3600 * 1000 }
-        }[tf] || { n: 96, vol: 0.004, span: 24 * 3600 * 1000 };
-
-        const now = Date.now();
-        const out = [];
-        let p = basePrice * (1 - Math.random() * 0.05);
-        for (let i = 0; i < cfg.n; i++) {
-            const change = (Math.random() - 0.5) * cfg.vol * p;
-            const trend = (basePrice - p) / (cfg.n - i);
-            p += change + trend;
-            if (p < 1e-9) p = 1e-9;
-            out.push({ t: now - cfg.span + (cfg.span * i / (cfg.n - 1)), v: p });
+    async function loadTrades(token) {
+        const order = [...new Set([state.priceProvider, 'kraken', 'okx', 'kucoin', 'coinbase'])];
+        for (const pid of order) {
+            const prov = priceProviders[pid];
+            if (!prov || !prov.trades) continue;
+            try {
+                const r = await prov.trades(token);
+                if (r && (r.buy > 0 || r.sell > 0)) return r;
+            } catch (e) { logFail('сделки', pid + ': ' + e.message); }
         }
-        out[out.length - 1].v = basePrice;
-        return out;
+        return null;
     }
 
-    // Окно и число точек для каждого таймфрейма
+    /* ============================================================
+       ГРАФИК: окно таймфрейма
+       ============================================================ */
     const TF = {
         '1D':  { ms: 24 * 3600 * 1000,        pts: 24 },
         '7D':  { ms: 7 * 24 * 3600 * 1000,    pts: 84 },
@@ -1059,7 +762,6 @@
         '1Y':  { ms: 365 * 24 * 3600 * 1000,  pts: 73 },
         'ALL': { ms: 3 * 365 * 24 * 3600 * 1000, pts: 100 }
     };
-
     function downsample(points, max) {
         if (points.length <= max) return points;
         const step = points.length / max;
@@ -1068,8 +770,6 @@
         out[out.length - 1] = points[points.length - 1];
         return out;
     }
-
-    // Приводим любую серию к окну выбранного таймфрейма
     function normalizeSeries(points, tf) {
         if (!points || points.length < 2) return null;
         const cfg = TF[tf] || TF['1D'];
@@ -1079,7 +779,19 @@
         if (filtered.length < 2) filtered = points;
         return downsample(filtered, cfg.pts);
     }
-
+    // Очень плавная линия — используется при превышении лимита API
+    function smoothSeries(basePrice, tf) {
+        const cfg = TF[tf] || TF['1D'];
+        const n = cfg.pts;
+        const now = Date.now();
+        const out = [];
+        for (let i = 0; i < n; i++) {
+            const t = now - cfg.ms + (cfg.ms * i / (n - 1));
+            const v = basePrice * (1 + 0.008 * Math.sin(i / n * Math.PI * 2));
+            out.push({ t, v });
+        }
+        return out;
+    }
     function labelFor(ts, tf) {
         const d = new Date(ts);
         if (tf === '1D') return d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
@@ -1087,6 +799,43 @@
         if (tf === '1Y') return d.toLocaleDateString('ru-RU', { month: 'short', year: '2-digit' });
         return d.toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
     }
+
+    /* ============================================================
+       ПЛАГИН: маркер точки покупки на графике
+       ============================================================ */
+    const entryMarkerPlugin = {
+        id: 'entryMarker',
+        afterDatasetsDraw(chart) {
+            const cfg = chart.options.plugins.entryMarker;
+            if (!cfg || !cfg.entry) return;
+            const { ctx, chartArea, scales } = chart;
+            const y = scales.y.getPixelForValue(cfg.entry.price);
+            if (y < chartArea.top - 2 || y > chartArea.bottom + 2) return;
+            ctx.save();
+            // тонкая полоска уровня покупки
+            ctx.strokeStyle = 'rgba(142,142,147,0.9)';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([3, 3]);
+            ctx.beginPath();
+            ctx.moveTo(chartArea.left, y);
+            ctx.lineTo(chartArea.right, y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            // серая точка в момент покупки
+            if (cfg.entry.index != null && cfg.entry.index >= 0) {
+                const x = scales.x.getPixelForValue(cfg.entry.index);
+                ctx.fillStyle = '#8e8e93';
+                ctx.beginPath();
+                ctx.arc(x, y, 4.5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+    };
+    Chart.register(entryMarkerPlugin);
 
     /* ============================================================
        ОТРИСОВКА ГРАФИКА
@@ -1098,37 +847,45 @@
         if (charts[tokenId]) { charts[tokenId].destroy(); delete charts[tokenId]; }
 
         const loadingEl = document.querySelector(`#item-${tokenId} .chart-loading`);
+        const staleEl = document.querySelector(`#item-${tokenId} .stale-note`);
         if (loadingEl) loadingEl.style.display = 'flex';
+        if (staleEl) staleEl.classList.remove('show');
 
-        let points = null;
+        let points = null, stale = false;
         if (token.real) {
-            // пробуем выбранного поставщика, затем CoinGecko как резерв
             const histOrder = [state.priceProvider, 'coingecko'].filter((v, i, a) => a.indexOf(v) === i);
             for (const pid of histOrder) {
                 try {
                     let pts = await priceProviders[pid].history(token, tf);
                     if (pts && pts.length >= 2) {
-                        if (pid !== 'coingecko') {
-                            const rate = await getUsdRub();
-                            pts = pts.map(p => ({ t: p.t, v: p.v * rate }));
-                        }
+                        if (pid !== 'coingecko') { const rate = await getUsdRub(); pts = pts.map(p => ({ t: p.t, v: p.v * rate })); }
                         pts = normalizeSeries(pts, tf);
                         if (pts && pts.length >= 2) { points = pts; break; }
                     }
-                } catch (e) { /* пробуем следующий */ }
+                } catch (e) { logFail('график', pid + ': ' + e.message); }
             }
         }
-        if (!points || points.length < 2) points = generateMockSeries(token.price, tf);
+        if (!points || points.length < 2) { points = smoothSeries(token.price, tf); stale = true; }
 
         if (loadingEl) loadingEl.style.display = 'none';
+        if (stale && staleEl) staleEl.classList.add('show');
 
         const data = points.map(p => p.v);
         const labels = points.map(p => labelFor(p.t, tf));
         const isPositive = token.change >= 0;
-        const color = isPositive ? '#34c759' : '#ff3b30';
+        const baseColor = isPositive ? '#34c759' : '#ff3b30';
+
+        // точка покупки
+        const entry = getEntry(tokenId);
+        let entryCfg = null;
+        if (entry && entry.price) {
+            let idx = 0, best = Infinity;
+            points.forEach((p, i) => { const d = Math.abs(p.t - entry.time); if (d < best) { best = d; idx = i; } });
+            entryCfg = { price: entry.price, index: idx };
+        }
 
         const gradient = ctx.createLinearGradient(0, 0, 0, 150);
-        gradient.addColorStop(0, isPositive ? 'rgba(52, 199, 89, 0.35)' : 'rgba(255, 59, 48, 0.35)');
+        gradient.addColorStop(0, isPositive ? 'rgba(52,199,89,0.30)' : 'rgba(255,59,48,0.30)');
         gradient.addColorStop(1, 'rgba(0,0,0,0)');
 
         charts[tokenId] = new Chart(ctx, {
@@ -1137,13 +894,16 @@
                 labels: labels,
                 datasets: [{
                     data: data,
-                    borderColor: color,
+                    borderColor: baseColor,
                     backgroundColor: gradient,
                     borderWidth: 2,
                     pointRadius: 0,
                     pointHoverRadius: 4,
                     fill: true,
-                    tension: 0.4
+                    tension: 0.4,
+                    segment: entryCfg ? {
+                        borderColor: (c) => (c.p1.parsed.y >= entryCfg.price ? '#34c759' : '#ff3b30')
+                    } : {}
                 }]
             },
             options: {
@@ -1152,23 +912,15 @@
                 animation: { duration: 300 },
                 plugins: {
                     legend: { display: false },
+                    entryMarker: { entry: entryCfg },
                     tooltip: {
-                        mode: 'index',
-                        intersect: false,
+                        mode: 'index', intersect: false,
                         callbacks: { label: (c) => formatRub(c.parsed.y) }
                     }
                 },
                 scales: {
-                    x: {
-                        display: true,
-                        grid: { display: false },
-                        ticks: { color: '#8e8e93', font: { size: 9 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 5 }
-                    },
-                    y: {
-                        display: false,
-                        min: Math.min(...data) * 0.98,
-                        max: Math.max(...data) * 1.02
-                    }
+                    x: { display: true, grid: { display: false }, ticks: { color: '#8e8e93', font: { size: 9 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 5 } },
+                    y: { display: false, min: Math.min(...data) * 0.98, max: Math.max(...data) * 1.02 }
                 },
                 layout: { padding: { top: 8, bottom: 0, left: 0, right: 0 } }
             }
@@ -1182,65 +934,102 @@
         if (!el || !points || !points.length) return;
         const fmt = (ts) => {
             const d = new Date(ts);
-            return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }) + ', ' +
-                   d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+            return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }) + ', ' + d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
         };
         el.innerHTML = `<span>${fmt(points[0].t)}</span><span>${fmt(points[points.length - 1].t)}</span>`;
     }
 
     /* ============================================================
-       КАРТОЧКА "ТОРГОВАЯ АКТИВНОСТЬ"
+       ur-КАРТОЧКА: количество + математика + объём 24ч
        ============================================================ */
-    function seededRandom(seed) {
-        let x = 0;
-        for (let i = 0; i < seed.length; i++) x = (x * 31 + seed.charCodeAt(i)) % 100000;
-        return () => {
-            x = (x * 9301 + 49297) % 233280;
-            return x / 233280;
-        };
-    }
-
-    function fillUrCard(tokenId, token) {
-        const rand = seededRandom(tokenId);
-        const urChange = (rand() * 4 - 2);
-        const urValue = (1 + rand() * 3).toFixed(2).replace('.', ',');
-        const buyShare = Math.round(35 + rand() * 30);
-        const sellShare = 100 - buyShare;
-        const volume = (2 + rand() * 8).toFixed(1).replace('.', ',');
-
+    async function fillUrCard(tokenId, token) {
         const card = document.querySelector(`#item-${tokenId} .ur-card`);
         if (!card) return;
-
-        const changeClass = urChange >= 0 ? 'positive' : 'negative';
-        const changeArrow = urChange >= 0 ? '↑' : '↓';
-        const valueColor = urChange >= 0 ? 'var(--green)' : 'var(--red)';
+        const qty = getQty(tokenId);
+        const entry = getEntry(tokenId);
 
         card.innerHTML = `
             <div class="ur-top">
                 <span class="ur-badge">ur</span>
-                <span class="ur-percent ${changeClass}">${changeArrow}${Math.abs(urChange).toFixed(2)}%</span>
+                <input class="ur-input" type="text" inputmode="decimal" placeholder="кол-во" value="${qty ? String(qty).replace('.', ',') : ''}">
             </div>
-            <div class="ur-value" style="color:${valueColor}">${urValue}</div>
-            <div class="ur-caption">Торговая активность за 24 ч</div>
-            <div class="ur-volume-label">Объём</div>
-            <div class="ur-bar">
-                <div class="buy" style="width:${buyShare}%"></div>
-                <div class="sell" style="width:${sellShare}%"></div>
-            </div>
-            <div class="ur-bar-labels">
-                <span class="buy-label">Покупка · ${volume} тыс. $</span>
-                <span class="sell-label">${volume} тыс. $ · Продажа</span>
-            </div>
+            <div class="ur-value">—</div>
+            <div class="ur-caption">введите количество токенов</div>
+            <div class="ur-sep"></div>
+            <div class="ur-volume-label">Объём 24ч${token.volume ? ' · ' + formatNum(token.volume) + ' ₽' : ''}</div>
+            <div class="ur-bar"><div class="buy" style="width:50%"></div><div class="sell" style="width:50%"></div></div>
+            <div class="ur-bar-labels"><span class="buy-label">загрузка…</span></div>
         `;
+
+        const input = card.querySelector('.ur-input');
+        input.addEventListener('click', e => e.stopPropagation());
+        input.addEventListener('input', () => {
+            const v = parseFloat(input.value.replace(',', '.'));
+            setQty(tokenId, isNaN(v) ? 0 : v);
+            if (!isNaN(v) && v > 0 && !getEntry(tokenId)) {
+                setEntry(tokenId, { price: token.price, time: Date.now() });
+            }
+            updateUrMath(tokenId, token);
+            updateDbField();
+        });
+
+        updateUrMath(tokenId, token);
+
+        // реальные сделки
+        const tr = await loadTrades(token);
+        const bar = card.querySelector('.ur-bar');
+        const labels = card.querySelector('.ur-bar-labels');
+        if (tr && (tr.buy > 0 || tr.sell > 0)) {
+            const total = tr.buy + tr.sell;
+            const buyPct = Math.round(tr.buy / total * 100);
+            bar.innerHTML = `<div class="buy" style="width:${buyPct}%"></div><div class="sell" style="width:${100 - buyPct}%"></div>`;
+            labels.innerHTML = `<span class="buy-label">Покупка · ${formatNum(tr.buy)}</span><span class="sell-label">Продажа · ${formatNum(tr.sell)}</span>`;
+        } else {
+            bar.innerHTML = `<div class="buy" style="width:50%"></div><div class="sell" style="width:50%"></div>`;
+            labels.innerHTML = `<span class="buy-label" style="color:var(--hint-color)">нет данных по сделкам</span>`;
+        }
+    }
+
+    function updateUrMath(tokenId, token) {
+        const card = document.querySelector(`#item-${tokenId} .ur-card`);
+        if (!card) return;
+        const qty = getQty(tokenId);
+        const entry = getEntry(tokenId);
+        const valEl = card.querySelector('.ur-value');
+        const capEl = card.querySelector('.ur-caption');
+        const plEl = card.querySelector('.ur-pl');
+        if (plEl) plEl.remove();
+
+        if (!qty || qty <= 0) {
+            valEl.textContent = '—';
+            capEl.textContent = 'введите количество токенов';
+            return;
+        }
+        const value = qty * token.price;
+        valEl.textContent = formatRub(value);
+        if (entry && entry.price) {
+            const pl = (token.price - entry.price) / entry.price * 100;
+            const cls = pl >= 0 ? 'positive' : 'negative';
+            capEl.textContent = `куплено ${fmtTime(entry.time)} · ${formatPercent((entry.price / token.price - 1) * 100)}`;
+            const plDiv = document.createElement('div');
+            plDiv.className = 'ur-pl ' + cls;
+            plDiv.textContent = (pl >= 0 ? '↑ ' : '↓ ') + Math.abs(pl).toFixed(2) + '%';
+            capEl.after(plDiv);
+        } else {
+            capEl.textContent = 'точка покупки не задана';
+        }
     }
 
     /* ============================================================
-       ОТРИСОВКА СПИСКА
+       СПИСОК
        ============================================================ */
+    function currentList() {
+        if (state.filter === 'stocks') return stocks;
+        if (state.filter === 'funds') return funds;
+        return tokens;
+    }
     function visibleTokens() {
-        let list = tokens;
-        if (state.filter === 'tokens') list = tokens; // все элементы — токены
-        else if (state.filter === 'stocks' || state.filter === 'funds') list = [];
+        let list = currentList();
         if (state.query) {
             const q = state.query.toLowerCase();
             list = list.filter(t => t.name.toLowerCase().includes(q) || t.ticker.toLowerCase().includes(q));
@@ -1248,31 +1037,40 @@
         return list;
     }
 
+    function iconHtml(t) {
+        if (t.iconFile) {
+            return `<div class="token-icon" style="background-color:${t.iconBg}"><img src="icons/${t.iconFile}" alt="" onerror="this.parentNode.textContent='${t.icon}';logFail('иконка','${t.id}: файл не найден')"></div>`;
+        }
+        return `<div class="token-icon" style="background-color:${t.iconBg}">${t.icon}</div>`;
+    }
+
     function renderTokenList() {
         const list = visibleTokens();
+        const label = document.getElementById('sectionLabel');
+        label.textContent = state.filter === 'stocks' ? 'Активы в акциях' : state.filter === 'funds' ? 'Активы в фондах' : 'Активы в токенах';
+
         if (!list.length) {
-            tokenListEl.innerHTML = '<div style="padding:24px 0;text-align:center;color:var(--hint-color);font-size:14px;">Ничего не найдено</div>';
+            tokenListEl.innerHTML = '<div class="empty">Ничего не найдено</div>';
             return;
         }
         tokenListEl.innerHTML = list.map(token => {
             const changeClass = token.change >= 0 ? 'positive' : 'negative';
             const changeSymbol = token.change >= 0 ? '↑' : '↓';
-            const aprBadge = token.apr !== undefined
-                ? `<span class="apr-badge">${token.apr.toFixed(2).replace('.', ',')}% годовых</span>`
-                : '';
+            const aprBadge = token.apr !== undefined ? `<span class="apr-badge">${token.apr.toFixed(2).replace('.', ',')}% годовых</span>` : '';
             const liveDot = token.live ? '<span class="live-dot"></span>' : '';
+            const isToken = token.kind === undefined;
+            const expandable = isToken;
 
             return `
                 <div class="token-item" id="item-${token.id}" data-id="${token.id}">
                     <div class="token-header">
                         <div class="token-info">
-                            <div class="token-icon" style="background-color: ${token.iconBg}">${token.icon}</div>
+                            ${iconHtml(token)}
                             <div class="token-names">
                                 <span class="token-name">${token.name}</span>
                                 <div class="token-meta">
                                     <span class="token-ticker">${token.ticker}</span>
-                                    ${aprBadge}
-                                    ${liveDot}
+                                    ${aprBadge}${liveDot}
                                 </div>
                             </div>
                         </div>
@@ -1280,8 +1078,9 @@
                             <span class="token-price">${formatRub(token.price)}</span>
                             <span class="token-change ${changeClass}">${changeSymbol} ${Math.abs(token.change).toFixed(2)}%</span>
                         </div>
-                        <div class="chevron"></div>
+                        ${expandable ? '<div class="chevron"></div>' : ''}
                     </div>
+                    ${expandable ? `
                     <div class="chart-wrapper">
                         <div class="expand-row">
                             <div class="chart-col">
@@ -1290,6 +1089,7 @@
                                     <div class="chart-loading" style="display:none;">Загрузка…</div>
                                 </div>
                                 <div class="date-range"></div>
+                                <div class="stale-note">лимит API · плавная линия (обновление графика)</div>
                                 <div class="timeframe-pills">
                                     <button class="pill active" data-tf="1D">1Д</button>
                                     <button class="pill" data-tf="7D">7Д</button>
@@ -1300,7 +1100,7 @@
                             </div>
                             <div class="ur-card"></div>
                         </div>
-                    </div>
+                    </div>` : ''}
                 </div>
             `;
         }).join('');
@@ -1309,10 +1109,10 @@
     }
 
     function attachHandlers() {
-        // Аккордеон
         document.querySelectorAll('.token-header').forEach(header => {
             header.addEventListener('click', () => {
                 const item = header.closest('.token-item');
+                if (!item.querySelector('.chart-wrapper')) return;
                 const tokenId = item.dataset.id;
                 const token = tokens.find(t => t.id === tokenId);
                 const wasExpanded = item.classList.contains('expanded');
@@ -1330,14 +1130,12 @@
                     if (charts[tokenId]) { charts[tokenId].destroy(); delete charts[tokenId]; }
                     return;
                 }
-
                 item.classList.add('expanded');
                 fillUrCard(tokenId, token);
                 setTimeout(() => drawChart(tokenId, token, '1D'), 150);
             });
         });
 
-        // Таймфреймы
         document.querySelectorAll('.pill').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -1358,28 +1156,16 @@
     const overlay = document.getElementById('sheetOverlay');
 
     function renderOptions() {
-        const rateEl = document.getElementById('rateOpts');
-        rateEl.innerHTML = Object.entries(rateProviders).map(([id, p]) => `
+        document.getElementById('rateOpts').innerHTML = Object.entries(rateProviders).map(([id, p]) => `
             <div class="opt ${state.rateProvider === id ? 'selected' : ''}" data-group="rate" data-id="${id}">
                 <span class="opt-radio"></span>
-                <span class="opt-text">
-                    <span class="opt-label">${p.label}</span>
-                    <span class="opt-note">${p.note}</span>
-                </span>
-            </div>
-        `).join('');
-
-        const priceEl = document.getElementById('priceOpts');
-        priceEl.innerHTML = Object.entries(priceProviders).map(([id, p]) => `
+                <span class="opt-text"><span class="opt-label">${p.label}</span><span class="opt-note">${p.note}</span></span>
+            </div>`).join('');
+        document.getElementById('priceOpts').innerHTML = Object.entries(priceProviders).map(([id, p]) => `
             <div class="opt ${state.priceProvider === id ? 'selected' : ''}" data-group="price" data-id="${id}">
                 <span class="opt-radio"></span>
-                <span class="opt-text">
-                    <span class="opt-label">${p.label}</span>
-                    <span class="opt-note">${p.note}</span>
-                </span>
-            </div>
-        `).join('');
-
+                <span class="opt-text"><span class="opt-label">${p.label}</span><span class="opt-note">${p.note}</span></span>
+            </div>`).join('');
         document.querySelectorAll('.opt').forEach(opt => {
             opt.addEventListener('click', () => {
                 const group = opt.dataset.group;
@@ -1388,37 +1174,25 @@
             });
         });
     }
-
-    function openSheet() {
-        renderOptions();
-        overlay.classList.add('open');
-        sheet.classList.add('open');
-    }
-    function closeSheet() {
-        overlay.classList.remove('open');
-        sheet.classList.remove('open');
-    }
+    function openSheet() { renderOptions(); overlay.classList.add('open'); sheet.classList.add('open'); }
+    function closeSheet() { overlay.classList.remove('open'); sheet.classList.remove('open'); }
 
     document.getElementById('settingsBtn').addEventListener('click', openSheet);
     overlay.addEventListener('click', closeSheet);
-
     document.getElementById('applyBtn').addEventListener('click', async () => {
         const rateSel = document.querySelector('.opt[data-group="rate"].selected');
         const priceSel = document.querySelector('.opt[data-group="price"].selected');
         const newRate = rateSel ? rateSel.dataset.id : state.rateProvider;
         const newPrice = priceSel ? priceSel.dataset.id : state.priceProvider;
-
         const changed = newRate !== state.rateProvider || newPrice !== state.priceProvider;
-        state.rateProvider = newRate;
-        state.priceProvider = newPrice;
+        state.rateProvider = newRate; state.priceProvider = newPrice;
         localStorage.setItem('rateProvider', newRate);
         localStorage.setItem('priceProvider', newPrice);
         state.usdRub = null;
-
         closeSheet();
         if (changed) {
             showToast('Источник: ' + priceProviders[newPrice].label + ' · курс: ' + rateProviders[newRate].label);
-            await loadPrices();
+            await loadPrices(true);
         }
     });
 
@@ -1426,13 +1200,210 @@
        ТОСТ
        ============================================================ */
     let toastTimer = null;
-    function showToast(msg) {
+    function showToast(msg, ms) {
         const el = document.getElementById('toast');
         el.textContent = msg;
         el.classList.add('show');
         clearTimeout(toastTimer);
-        toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+        toastTimer = setTimeout(() => el.classList.remove('show'), ms || 2600);
     }
+
+    /* ============================================================
+       МОДАЛКА (лог)
+       ============================================================ */
+    const modalOverlay = document.getElementById('modalOverlay');
+    function openModal(title, lines) {
+        document.getElementById('modalTitle').textContent = title;
+        document.getElementById('modalBody').innerHTML = lines.length
+            ? lines.map(l => `<div class="log-line">${l}</div>`).join('')
+            : '<div class="log-line" style="color:var(--hint-color)">Пусто — ошибок нет</div>';
+        modalOverlay.classList.add('open');
+    }
+    document.getElementById('modalClose').addEventListener('click', () => modalOverlay.classList.remove('open'));
+    modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) modalOverlay.classList.remove('open'); });
+
+    /* ============================================================
+       СТРАНИЦЫ
+       ============================================================ */
+    function switchView(view) {
+        state.view = view;
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.view === view));
+        document.getElementById('view-main').style.display = view === 'main' ? 'block' : 'none';
+        document.getElementById('view-readme').classList.toggle('active', view === 'readme');
+        document.getElementById('view-portfolio').classList.toggle('active', view === 'portfolio');
+        document.getElementById('view-profile').classList.toggle('active', view === 'profile');
+        // поиск и табы видны только на главной
+        const showTop = view === 'main';
+        document.querySelector('.search-bar').style.display = showTop ? 'flex' : 'none';
+        document.getElementById('tabsBar').style.display = showTop ? 'flex' : 'none';
+        if (view === 'readme') updateDbField();
+        if (view === 'portfolio') renderPortfolio();
+        if (view === 'profile') renderProfile();
+    }
+
+    /* ============================================================
+       readme: строка-БД
+       ============================================================ */
+    function buildDbString() {
+        return tokens.map((t, i) => {
+            const q = getQty(t.id);
+            return `${q ? String(q).replace('.', ',') : 0}|${i + 1}`;
+        }).join('`');
+    }
+    function updateDbField() {
+        const el = document.getElementById('dbField');
+        if (el && document.activeElement !== el) el.value = buildDbString();
+    }
+    document.getElementById('copyBtn').addEventListener('click', async () => {
+        const el = document.getElementById('dbField');
+        el.value = buildDbString();
+        try {
+            await navigator.clipboard.writeText(el.value);
+            showToast('Скопировано в буфер обмена');
+        } catch (e) {
+            el.select();
+            try { document.execCommand('copy'); showToast('Скопировано'); }
+            catch (e2) { showToast('Не удалось скопировать'); }
+        }
+    });
+    document.getElementById('applyDbBtn').addEventListener('click', () => {
+        const raw = document.getElementById('dbField').value.trim();
+        if (!raw) return;
+        let n = 0;
+        raw.split('`').forEach(part => {
+            const [q, idx] = part.split('|');
+            const i = parseInt(idx) - 1;
+            if (i >= 0 && i < tokens.length) {
+                const v = parseFloat(String(q).replace(',', '.'));
+                setQty(tokens[i].id, isNaN(v) ? 0 : v);
+                n++;
+            }
+        });
+        showToast('Применено записей: ' + n);
+        renderTokenList();
+    });
+
+    /* ============================================================
+       Портфель
+       ============================================================ */
+    function renderPortfolio() {
+        const holdings = tokens.filter(t => getQty(t.id) > 0);
+        const sumEl = document.getElementById('portfolioSummary');
+        const holdEl = document.getElementById('portfolioHoldings');
+
+        let total = 0, cost = 0;
+        holdings.forEach(t => {
+            const q = getQty(t.id);
+            total += q * t.price;
+            const e = getEntry(t.id);
+            cost += q * (e && e.price ? e.price : t.price);
+        });
+        const pl = cost ? (total - cost) / cost * 100 : 0;
+        const plCls = pl >= 0 ? 'positive' : 'negative';
+
+        sumEl.innerHTML = `
+            <h3>Итог портфеля</h3>
+            <div class="kv"><span class="k">Стоимость</span><span class="v">${formatRub(total)}</span></div>
+            <div class="kv"><span class="k">Вложено</span><span class="v">${formatRub(cost)}</span></div>
+            <div class="kv"><span class="k">Прибыль/убыток</span><span class="v ${plCls}">${formatPercent(pl)}</span></div>
+            <div class="kv"><span class="k">Активов</span><span class="v">${holdings.length}</span></div>
+        `;
+
+        if (!holdings.length) {
+            holdEl.innerHTML = '<div class="empty">Введите количество токенов в поле ur, чтобы увидеть портфель</div>';
+            return;
+        }
+        holdEl.innerHTML = '<h3>Активы</h3>' + holdings.map(t => {
+            const q = getQty(t.id);
+            const val = q * t.price;
+            const e = getEntry(t.id);
+            const p = e && e.price ? (t.price - e.price) / e.price * 100 : 0;
+            const cls = p >= 0 ? 'positive' : 'negative';
+            const icon = t.iconFile
+                ? `<div class="hold-icon" style="background:${t.iconBg}"><img src="icons/${t.iconFile}" alt=""></div>`
+                : `<div class="hold-icon" style="background:${t.iconBg}">${t.icon}</div>`;
+            return `<div class="hold-row">${icon}<span class="hold-name">${t.name} · ${String(q).replace('.', ',')}</span><span class="hold-val">${formatRub(val)} <span class="${cls}">${formatPercent(p)}</span></span></div>`;
+        }).join('');
+    }
+
+    /* ============================================================
+       Профиль
+       ============================================================ */
+    function renderProfile() {
+        const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
+        const name = u ? [u.first_name, u.last_name].filter(Boolean).join(' ') : 'Гость';
+        const uname = u && u.username ? '@' + u.username : '—';
+        const uid = u ? u.id : '—';
+        const photo = u && u.photo_url ? `<img src="${u.photo_url}" style="width:56px;height:56px;border-radius:50%;object-fit:cover;">` : `<div style="width:56px;height:56px;border-radius:50%;background:var(--button-color);display:flex;align-items:center;justify-content:center;font-size:24px;">👤</div>`;
+
+        document.getElementById('profileCard').innerHTML = `
+            <div style="display:flex;align-items:center;gap:14px;">
+                ${photo}
+                <div>
+                    <div style="font-size:17px;font-weight:700;">${name}</div>
+                    <div class="muted" style="color:var(--hint-color);font-size:13px;">${uname}</div>
+                    <div class="muted" style="color:var(--hint-color);font-size:12px;">ID: ${uid}</div>
+                </div>
+            </div>
+        `;
+
+        const withQty = tokens.filter(t => getQty(t.id) > 0).length;
+        const withEntry = tokens.filter(t => getEntry(t.id)).length;
+        document.getElementById('profileStats').innerHTML = `
+            <h3>Статистика</h3>
+            <div class="kv"><span class="k">Источник цен</span><span class="v">${priceProviders[state.priceProvider].label}</span></div>
+            <div class="kv"><span class="k">Источник курса</span><span class="v">${rateProviders[state.rateProvider].label}</span></div>
+            <div class="kv"><span class="k">Курс USD → ₽</span><span class="v">${state.usdRub ? state.usdRub.toFixed(2) + ' ₽' : '—'}</span></div>
+            <div class="kv"><span class="k">Токенов в списке</span><span class="v">${tokens.length}</span></div>
+            <div class="kv"><span class="k">С количеством (ur)</span><span class="v">${withQty}</span></div>
+            <div class="kv"><span class="k">С точкой покупки</span><span class="v">${withEntry}</span></div>
+            <div class="kv"><span class="k">Версия</span><span class="v">2.0</span></div>
+        `;
+    }
+    document.getElementById('clearDataBtn').addEventListener('click', () => {
+        tokens.forEach(t => { localStorage.removeItem('qty_' + t.id); localStorage.removeItem('entry_' + t.id); });
+        showToast('Данные сброшены');
+        renderTokenList();
+        renderProfile();
+    });
+
+    /* ============================================================
+       ДОЛГОЕ НАЖАТИЕ
+       ============================================================ */
+    function addLongPress(el, ms, cb) {
+        let timer = null, fired = false;
+        const start = (e) => {
+            fired = false;
+            timer = setTimeout(() => { fired = true; cb(); }, ms);
+        };
+        const cancel = () => { clearTimeout(timer); };
+        el.addEventListener('touchstart', start, { passive: true });
+        el.addEventListener('touchend', cancel);
+        el.addEventListener('touchmove', cancel);
+        el.addEventListener('mousedown', start);
+        el.addEventListener('mouseup', cancel);
+        el.addEventListener('mouseleave', cancel);
+        el.addEventListener('click', (e) => { if (fired) { e.stopPropagation(); e.preventDefault(); } }, true);
+    }
+
+    // Долгое нажатие на вкладки (2 сек) → монеты, не загруженные из-за лимитов API
+    document.querySelectorAll('.tab').forEach(tab => {
+        addLongPress(tab, 2000, () => {
+            const lines = blocked.length
+                ? blocked.map(t => `<span class="tag">${t.ticker}</span> — ${t.name}: не удалось получить цену (лимит API)`)
+                : ['Все монеты загружены — ограничений API не возникло'];
+            openModal('Монеты, не добавленные из-за лимитов API', lines);
+        });
+    });
+
+    // Долгое нажатие на «Портфель» (3 сек) → лог неудач
+    const portfolioNav = document.querySelector('.nav-item[data-view="portfolio"]');
+    addLongPress(portfolioNav, 3000, () => {
+        const lines = failLog.length
+            ? failLog.slice(-25).map(l => `<span class="tag">[${l.tag}]</span> ${l.msg}`)
+            : ['Ошибок не зафиксировано'];
+        openModal('Лог неудач', lines);
+    });
 
     /* ============================================================
        ПОИСК / ТАБЫ / НАВИГАЦИЯ
@@ -1452,15 +1423,12 @@
     });
 
     document.querySelectorAll('.nav-item').forEach(item => {
-        item.addEventListener('click', () => {
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            item.classList.add('active');
-        });
+        item.addEventListener('click', () => switchView(item.dataset.view));
     });
 
     document.getElementById('refreshBtn').addEventListener('click', () => {
         state.usdRub = null;
-        loadPrices();
+        loadPrices(true);
     });
 
     /* ============================================================
